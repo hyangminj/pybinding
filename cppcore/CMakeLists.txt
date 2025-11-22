@@ -42,21 +42,32 @@ endif()
 # Dependencies using FetchContent (modern CMake way)
 include(FetchContent)
 
-# Eigen3 - Latest stable version (without hash check for now)
+# Eigen3 - Latest stable version
 FetchContent_Declare(
     eigen3
     URL https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+    URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(eigen3)
 
-# fmt - Modern formatting library (without hash check for now)
+# fmt - Modern formatting library
 FetchContent_Declare(
     fmt
     URL https://github.com/fmtlib/fmt/archive/refs/tags/11.0.2.tar.gz
+    URL_HASH SHA256=6cb1e6d37bdcb756dbbe59be438790db409cdb4868c66e888d5df9f13f7c027f
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(fmt)
+
+# libsimdpp - SIMD abstraction library
+FetchContent_Declare(
+    libsimdpp
+    URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
+    URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(libsimdpp)
 
 # Note: pybind11 is provided by the parent CMakeLists.txt through the Python package
 
@@ -151,8 +162,9 @@ set(CPPCORE_SOURCES
     src/Model.cpp
 )
 
-# Create library
-add_library(cppcore ${CPPCORE_HEADERS} ${CPPCORE_SOURCES})
+# Create library (modern CMake: only sources in add_library)
+add_library(cppcore ${CPPCORE_SOURCES})
+target_sources(cppcore PRIVATE ${CPPCORE_HEADERS})
 add_library(pybinding::cppcore ALIAS cppcore)
 
 # Include directories
@@ -161,15 +173,18 @@ target_include_directories(cppcore PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
+# SIMD library include
+target_include_directories(cppcore SYSTEM PRIVATE ${libsimdpp_SOURCE_DIR})
+
+# Thread support (must come before target_link_libraries)
+find_package(Threads REQUIRED)
+
 # Link libraries
 target_link_libraries(cppcore PUBLIC
     Eigen3::Eigen
     fmt::fmt
     Threads::Threads
 )
-
-# Thread support
-find_package(Threads REQUIRED)
 
 # Compiler warnings
 if(MSVC)
