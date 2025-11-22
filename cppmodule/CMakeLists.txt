@@ -1,5 +1,5 @@
-set(PYBIND11_CPP_STANDARD ${PB_CPP_STANDARD} CACHE STRING "Match core library")
-set(PYBIND11_PYTHON_VERSION 3.5 CACHE STRING "Minimum required Python version")
+set(PYBIND11_CPP_STANDARD "-std=c++17" CACHE STRING "Match core library")
+set(PYBIND11_PYTHON_VERSION 3.9 CACHE STRING "Minimum required Python version")
 add_subdirectory(deps/pybind11 EXCLUDE_FROM_ALL)
 
 pybind11_add_module(_pybinding THIN_LTO
@@ -19,8 +19,18 @@ pybind11_add_module(_pybinding THIN_LTO
     src/system.cpp
     src/wrapper_tests.cpp
 )
-enable_warnings(_pybinding)
 target_include_directories(_pybinding PRIVATE include)
+
+# Compiler warnings
+if(MSVC)
+    target_compile_options(_pybinding PRIVATE /W4)
+else()
+    target_compile_options(_pybinding PRIVATE
+        -Wall -Wextra -Wpedantic
+        -Wno-unused-parameter
+        -Wno-missing-field-initializers
+    )
+endif()
 
 target_link_libraries(_pybinding PRIVATE cppcore)
 if(NOT MSVC)  # match default visibility of core library and extension module
