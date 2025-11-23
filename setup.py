@@ -1,133 +1,198 @@
-import re
+"""
+Modern setup.py for pybinding with PEP 517/518 support.
+
+This file is maintained for backward compatibility and editable installs.
+The primary build configuration is in pyproject.toml.
+"""
 import os
 import sys
 import shutil
 import platform
-
-from subprocess import check_call, check_output, CalledProcessError
-from distutils.version import LooseVersion
+import subprocess
+from pathlib import Path
 
 from setuptools import setup, find_packages, Extension
 from setuptools.command.build_ext import build_ext
-from setuptools.command.egg_info import manifest_maker
-
-
-if sys.version_info[:2] < (3, 6):
-    print("Python >= 3.6 is required.")
-    sys.exit(-1)
 
 
 class CMakeExtension(Extension):
+    """Extension built using CMake"""
+
     def __init__(self, name, sourcedir=""):
         super().__init__(name, sources=[])
         self.sourcedir = os.path.abspath(sourcedir)
 
 
 class CMakeBuild(build_ext):
-    def run(self):
-        try:
-            out = check_output(["cmake", "--version"])
-        except OSError:
-            raise RuntimeError("CMake not found. Version 3.1 or newer is required")
+    """Custom build_ext to build CMake projects"""
 
-        cmake_version = LooseVersion(re.search(r'version\s*([\d.]+)', out.decode()).group(1))
-        if cmake_version < "3.1.0":
-            raise RuntimeError("CMake 3.1 or newer is required")
+    def run(self):
+        # Check CMake is available
+        try:
+            out = subprocess.check_output(["cmake", "--version"])
+        except OSError:
+            raise RuntimeError(
+                "CMake not found. Please install CMake 3.20 or newer.\n"
+                "On macOS: brew install cmake\n"
+                "On Ubuntu/Debian: sudo apt-get install cmake\n"
+                "On Windows: https://cmake.org/download/"
+            )
+
+        # Check CMake version
+        import re
+        from distutils.version import LooseVersion
+
+        cmake_version = LooseVersion(
+            re.search(r"version\s*([\d.]+)", out.decode()).group(1)
+        )
+        if cmake_version < "3.20.0":
+            raise RuntimeError("CMake 3.20 or newer is required")
 
         for ext in self.extensions:
             self.build_extension(ext)
 
     def build_extension(self, ext):
         extdir = os.path.abspath(os.path.dirname(self.get_ext_fullpath(ext.name)))
-        cmake_args = ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=" + extdir,
-                      "-DPYTHON_EXECUTABLE=" + sys.executable]
-        cmake_args += ["-DPB_WERROR=" + os.environ.get("PB_WERROR", "OFF"),
-                       "-DPB_TESTS=" + os.environ.get("PB_TESTS", "OFF"),
-                       "-DPB_NATIVE_SIMD=" + os.environ.get("PB_NATIVE_SIMD", "ON"),
-                       "-DPB_MKL=" + os.environ.get("PB_MKL", "OFF"),
-                       "-DPB_CUDA=" + os.environ.get("PB_CUDA", "OFF")]
 
-        cfg = os.environ.get("PB_BUILD_TYPE", "Release")
-        build_args = ["--config", cfg]
+        # Modern CMake configuration
+        cmake_args = [
+            f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY={extdir}",
+            f"-DPYTHON_EXECUTABLE={sys.executable}",
+            f"-DCMAKE_BUILD_TYPE={os.environ.get('PB_BUILD_TYPE', 'Release')}",
+        ]
 
+        # Build configuration from environment variables
+        cmake_args.extend([
+            f"-DPB_WERROR={os.environ.get('PB_WERROR', 'OFF')}",
+            f"-DPB_TESTS={os.environ.get('PB_TESTS', 'OFF')}",
+            f"-DPB_NATIVE_SIMD={os.environ.get('PB_NATIVE_SIMD', 'ON')}",
+            f"-DPB_MKL={os.environ.get('PB_MKL', 'OFF')}",
+            f"-DPB_CUDA={os.environ.get('PB_CUDA', 'OFF')}",
+        ])
+
+        build_args = ["--config", os.environ.get("PB_BUILD_TYPE", "Release")]
+
+        # Platform-specific configuration
         if platform.system() == "Windows":
-            cmake_args += ["-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{}={}".format(cfg.upper(), extdir)]
-            cmake_args += ["-A", "x64" if sys.maxsize > 2**32 else "Win32"]
-            build_args += ["--", "/v:m", "/m"]
+            cmake_args.append(
+                f"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY_{os.environ.get('PB_BUILD_TYPE', 'Release').upper()}={extdir}"
+            )
+            cmake_args.append("-A x64" if sys.maxsize > 2**32 else "Win32")
+            build_args.extend(["--", "/v:m", "/m"])
         else:
-            cmake_args += ["-DCMAKE_BUILD_TYPE=" + cfg]
-            if "-j" not in os.environ.get("MAKEFLAGS", ""):
-                parallel_jobs = 2 if not os.environ.get("READTHEDOCS") else 1
-                build_args += ["--", "-j{}".format(parallel_jobs)]
+            # Use parallel builds on Unix-like systems
+            import multiprocessing
 
+            max_jobs = os.environ.get("CMAKE_BUILD_PARALLEL_LEVEL")
+            if not max_jobs:
+                # Use 75% of available cores
+                max_jobs = max(1, int(multiprocessing.cpu_count() * 0.75))
+
+            build_args.extend(["--", f"-j{max_jobs}"])
+            print(f"Building with {max_jobs} parallel jobs")
+
+        # Version injection
         env = os.environ.copy()
-        env["CXXFLAGS"] = '{} -DCPB_VERSION=\\"{}\\"'.format(env.get("CXXFLAGS", ""),
-                                                             self.distribution.get_version())
+        version = self.distribution.get_version()
+        env["CXXFLAGS"] = f'{env.get("CXXFLAGS", "")} -DCPB_VERSION=\\"{version}\\"'
+
+        # Build directory
+        build_temp = Path(self.build_temp)
+        build_temp.mkdir(parents=True, exist_ok=True)
 
         def build():
-            os.makedirs(self.build_temp, exist_ok=True)
-            check_call(["cmake", ext.sourcedir] + cmake_args, cwd=self.build_temp, env=env)
-            check_call(["cmake", "--build", "."] + build_args, cwd=self.build_temp)
+            """Execute CMake configure and build"""
+            print(f"CMake args: {' '.join(cmake_args)}")
+            subprocess.check_call(
+                ["cmake", ext.sourcedir] + cmake_args, cwd=build_temp, env=env
+            )
+            subprocess.check_call(
+                ["cmake", "--build", "."] + build_args, cwd=build_temp
+            )
 
         try:
             build()
-        except CalledProcessError:  # possible CMake error if the build cache has been copied
-            shutil.rmtree(self.build_temp)  # delete build cache and try again
-            build()
+        except subprocess.CalledProcessError as e:
+            # If build fails, try cleaning build cache and retry
+            print("Build failed, cleaning build cache and retrying...")
+            shutil.rmtree(build_temp, ignore_errors=True)
+            build_temp.mkdir(parents=True, exist_ok=True)
+            try:
+                build()
+            except subprocess.CalledProcessError:
+                print("\n" + "=" * 60)
+                print("Build failed. Common solutions:")
+                print("1. Ensure you have a C++17 compatible compiler")
+                print("2. Update CMake: pip install --upgrade cmake")
+                print("3. Check build logs above for specific errors")
+                print("4. Set environment variables for custom configuration:")
+                print("   PB_BUILD_TYPE=Debug pip install -e .")
+                print("=" * 60 + "\n")
+                raise
 
 
-def about(package):
-    ret = {}
-    filename = os.path.join(os.path.dirname(__file__), package, "__about__.py")
-    with open(filename, 'rb') as file:
-        exec(compile(file.read(), filename, 'exec'), ret)
-    return ret
+def get_version():
+    """Read version from __about__.py"""
+    about = {}
+    here = Path(__file__).parent
+    with open(here / "pybinding" / "__about__.py", encoding="utf-8") as f:
+        exec(f.read(), about)
+    return about["__version__"]
 
 
-def changelog():
-    """Return the changes for the latest version only"""
-    if not os.path.exists("changelog.md"):
-        return ""
+def get_long_description():
+    """Read README and latest changelog"""
+    here = Path(__file__).parent
 
-    with open("changelog.md", encoding="utf-8") as file:
-        log = file.read()
-    match = re.search(r"## ([\s\S]*?)\n##\s", log)
-    return match.group(1) if match else ""
+    readme = ""
+    if (here / "readme.md").exists():
+        with open(here / "readme.md", encoding="utf-8") as f:
+            readme = f.read()
+
+    changelog = ""
+    if (here / "changelog.md").exists():
+        with open(here / "changelog.md", encoding="utf-8") as f:
+            content = f.read()
+            # Extract latest version from changelog
+            import re
+            match = re.search(r"## ([\s\S]*?)\n##\s", content)
+            if match:
+                changelog = match.group(1)
+
+    return f"{readme}\n\n## Latest Changes\n\n{changelog}" if changelog else readme
 
 
-info = about("pybinding")
-manifest_maker.template = "setup.manifest"
-setup(
-    name=info['__title__'],
-    version=info['__version__'],
-    description=info['__summary__'],
-    long_description="Documentation: http://pybinding.site/\n\n" + changelog(),
-    url=info['__url__'],
-    license=info['__license__'],
-    keywords="pybinding tight-binding solid-state physics cmt",
+if __name__ == "__main__":
+    # Only run setup if not building with pyproject.toml
+    # (pyproject.toml is the preferred method)
 
-    author=info['__author__'],
-    author_email=info['__email__'],
-
-    platforms=['Unix', 'Windows'],
-    classifiers=[
-        'Development Status :: 4 - Beta',
-        'Intended Audience :: Science/Research',
-        'Topic :: Scientific/Engineering :: Physics',
-        'License :: OSI Approved :: BSD License',
-        'Programming Language :: C++',
-        'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation :: CPython',
-    ],
-
-    packages=find_packages(exclude=['cppcore', 'cppwrapper', 'test*']) + ['pybinding.tests'],
-    package_dir={'pybinding.tests': 'tests'},
-    include_package_data=True,
-    ext_modules=[CMakeExtension('_pybinding')],
-    install_requires=['numpy>=1.12', 'scipy>=0.19', 'matplotlib>=2.0', 'pytest>=5.0'],
-    zip_safe=False,
-    cmdclass=dict(build_ext=CMakeBuild)
-)
+    setup(
+        name="pybinding",
+        version=get_version(),
+        packages=find_packages(exclude=["cppcore", "cppmodule", "test*"]) + ["pybinding.tests"],
+        package_dir={"pybinding.tests": "tests"},
+        ext_modules=[CMakeExtension("_pybinding")],
+        cmdclass={"build_ext": CMakeBuild},
+        include_package_data=True,
+        zip_safe=False,
+        python_requires=">=3.9",
+        install_requires=[
+            "numpy>=1.20",
+            "scipy>=1.7",
+            "matplotlib>=3.3",
+            "pytest>=6.0",
+        ],
+        extras_require={
+            "dev": [
+                "pytest>=6.0",
+                "pytest-cov",
+                "black>=22.0",
+                "mypy>=0.950",
+                "ruff>=0.1.0",
+            ],
+            "mkl": ["mkl>=2021.0"],
+            "docs": ["sphinx>=4.0", "sphinx-rtd-theme"],
+        },
+        long_description=get_long_description(),
+        long_description_content_type="text/markdown",
+    )

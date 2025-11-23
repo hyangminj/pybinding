@@ -1,0 +1,165 @@
+[build-system]
+requires = [
+    "setuptools>=61.0",
+    "wheel",
+    "cmake>=3.20",
+    "pybind11>=2.13.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pybinding"
+version = "0.10.0"
+description = "Package for numerical tight-binding calculations in solid state physics"
+readme = "readme.md"
+requires-python = ">=3.9"
+license = {text = "BSD"}
+authors = [
+    {name = "Dean Moldovan", email = "dean0x7d@gmail.com"}
+]
+keywords = ["pybinding", "tight-binding", "solid-state", "physics", "cmt"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = [
+    "numpy>=1.20",
+    "scipy>=1.7",
+    "matplotlib>=3.3",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black>=22.0",
+    "mypy>=0.950",
+    "ruff>=0.1.0",
+]
+mkl = [
+    "mkl>=2021.0",
+]
+docs = [
+    "sphinx>=4.0",
+    "sphinx-rtd-theme",
+]
+
+[project.urls]
+Homepage = "https://github.com/dean0x7d/pybinding"
+Documentation = "http://docs.pybinding.site/"
+Repository = "https://github.com/dean0x7d/pybinding"
+Issues = "https://github.com/dean0x7d/pybinding/issues"
+
+[tool.setuptools]
+packages = ["pybinding"]
+zip-safe = false
+
+[tool.setuptools.package-data]
+pybinding = ["tests/*"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--doctest-modules --ignore=setup.py --ignore=docs/conf.py"
+testpaths = ["pybinding", "tests", "docs"]
+norecursedirs = [".git", ".tox", "dist", "build", "*.egg", "cppcore", "cppmodule"]
+filterwarnings = ["ignore::ImportWarning"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+  | cppcore
+  | cppmodule
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "UP", # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex
+]
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pypackages__",
+    "_build",
+    "build",
+    "dist",
+    "cppcore",
+    "cppmodule",
+]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+check_untyped_defs = false
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+follow_imports = "normal"
+ignore_missing_imports = true
+exclude = [
+    'build',
+    'cppcore',
+    'cppmodule',
+]
+
+[tool.cibuildwheel]
+# Build for Python 3.9+
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+skip = "*-musllinux_* *-manylinux_i686"
+
+# Test the built wheels
+test-requires = "pytest numpy scipy matplotlib"
+test-command = "pytest {project}/tests"
+
+[tool.cibuildwheel.linux]
+before-all = "yum install -y cmake gcc-c++ || apt-get install -y cmake g++"
+environment = {PB_NATIVE_SIMD="OFF"}
+
+[tool.cibuildwheel.macos]
+environment = {MACOSX_DEPLOYMENT_TARGET="10.14"}
+
+[tool.cibuildwheel.windows]
+before-build = "pip install delvewheel"
