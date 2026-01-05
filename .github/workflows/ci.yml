@@ -58,7 +58,7 @@ jobs:
         env:
           PB_WERROR: "OFF"
           PB_TESTS: "ON"
-          PB_NATIVE_SIMD: "OFF"  # Disable for CI compatibility
+          PB_NATIVE_SIMD: "ON"  # Re-enabled after cross-platform SIMD fixes
         run: |
           python -m pip install -e .[dev]
 
@@ -122,7 +122,7 @@ jobs:
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_ARCHS_WINDOWS: "AMD64"
-          CIBW_ENVIRONMENT: PB_NATIVE_SIMD=OFF
+          CIBW_ENVIRONMENT: PB_NATIVE_SIMD=ON
           CIBW_TEST_REQUIRES: pytest numpy scipy matplotlib
           CIBW_TEST_COMMAND: pytest {project}/tests
 
