@@ -30,3 +30,4 @@ tests/failed
 # Documentation
 docs/changelog.md
 docs/_api/
+build*.log

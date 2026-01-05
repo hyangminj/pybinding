@@ -1,6 +1,15 @@
+# pybind11 - Use FetchContent for latest compatible version
+include(FetchContent)
 set(PYBIND11_CPP_STANDARD "-std=c++17" CACHE STRING "Match core library")
 set(PYBIND11_PYTHON_VERSION 3.9 CACHE STRING "Minimum required Python version")
-add_subdirectory(deps/pybind11 EXCLUDE_FROM_ALL)
+
+FetchContent_Declare(
+    pybind11
+    URL https://github.com/pybind/pybind11/archive/refs/tags/v2.13.6.tar.gz
+    URL_HASH SHA256=e08cb87f4773da97fa7b5f035de8763abc656d87d5773e62f6da0587d1f0ec20
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(pybind11)
 
 pybind11_add_module(_pybinding THIN_LTO
     include/cast.hpp

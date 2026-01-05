@@ -138,8 +138,15 @@ split_loop_t<step> split_loop(scalar_t const* p, idx_t start, idx_t end) {
  RAII class which disables floating-point denormals (flush-to-zero mode)
  */
 struct scope_disable_denormals {
+#if defined(__SSE3__) || defined(__AVX__)
     CPB_ALWAYS_INLINE scope_disable_denormals() { _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); }
     CPB_ALWAYS_INLINE ~scope_disable_denormals() { _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF); }
+#else
+    // No-op for ARM and other platforms
+    // ARM NEON flush-to-zero would require inline assembly or platform-specific intrinsics
+    CPB_ALWAYS_INLINE scope_disable_denormals() {}
+    CPB_ALWAYS_INLINE ~scope_disable_denormals() {}
+#endif
 };
 
 namespace detail {

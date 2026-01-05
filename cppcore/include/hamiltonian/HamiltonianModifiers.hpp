@@ -122,8 +122,9 @@ void HamiltonianModifiers::apply_to_onsite(System const& system, Fn lambda) cons
             );
 
             auto start = idx_t{0};
-            for (auto const& value : intrinsic_energy) {
-                onsite_energy.segment(start, nsites).setConstant(value);
+            auto const total_elements = intrinsic_energy.rows() * intrinsic_energy.cols();
+            for (auto i = idx_t{0}; i < total_elements; ++i) {
+                onsite_energy.segment(start, nsites).setConstant(intrinsic_energy.data()[i]);
                 start += nsites;
             }
         }
@@ -221,8 +222,9 @@ struct HoppingBuffer {
     /// Replicate each value from the `unit_hopping` matrix `num` times
     void reset_hoppings(idx_t num) {
         auto start = idx_t{0};
-        for (auto const& value : unit_hopping) {
-            hoppings.segment(start, num).setConstant(value);
+        auto const total_elements = unit_hopping.rows() * unit_hopping.cols();
+        for (auto i = idx_t{0}; i < total_elements; ++i) {
+            hoppings.segment(start, num).setConstant(unit_hopping.data()[i]);
             start += num;
         }
     }

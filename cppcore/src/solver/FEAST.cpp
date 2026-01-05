@@ -4,7 +4,6 @@
 # include "support/format.hpp"
 # include "compute/mkl/wrapper.hpp"
 
-using namespace fmt::literals;
 using namespace cpb;
 
 template<class scalar_t>

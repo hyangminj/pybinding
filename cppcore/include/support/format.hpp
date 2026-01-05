@@ -2,6 +2,13 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+// Forward declare Chrono to avoid circular dependency
+namespace cpb { class Chrono; }
+
+// Formatter specialization for Chrono
+template <>
+struct fmt::formatter<cpb::Chrono> : fmt::ostream_formatter {};
+
 namespace fmt {
 
 /**

@@ -60,14 +60,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(fmt)
 
-# libsimdpp - SIMD abstraction library
+# libsimdpp - SIMD abstraction library (header-only)
+# Don't use MakeAvailable because libsimdpp's CMakeLists.txt requires CMake < 3.5
 FetchContent_Declare(
     libsimdpp
     URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
     URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
-FetchContent_MakeAvailable(libsimdpp)
+FetchContent_GetProperties(libsimdpp)
+if(NOT libsimdpp_POPULATED)
+    FetchContent_Populate(libsimdpp)
+endif()
 
 # Note: pybind11 is provided by the parent CMakeLists.txt through the Python package
 
@@ -174,7 +178,11 @@ target_include_directories(cppcore PUBLIC
 )
 
 # SIMD library include
-target_include_directories(cppcore SYSTEM PRIVATE ${libsimdpp_SOURCE_DIR})
+# Use PUBLIC because cppcore headers (like support/simd.hpp) include libsimdpp headers
+# Use BUILD_INTERFACE to avoid CMake error about build directory paths in INTERFACE properties
+target_include_directories(cppcore SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${libsimdpp_SOURCE_DIR}>
+)
 
 # Thread support (must come before target_link_libraries)
 find_package(Threads REQUIRED)

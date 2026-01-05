@@ -13,7 +13,13 @@ add_executable(catch
     test_system.cpp
 )
 target_include_directories(catch PRIVATE ${CATCH_INCLUDE_DIR})
-target_link_libraries(catch PRIVATE cppcore)
+target_link_libraries(catch PRIVATE cppcore Catch2::Catch2WithMain)
 
-enable_warnings(catch)
+# Add compiler warnings (replaced enable_warnings() function)
+if(MSVC)
+    target_compile_options(catch PRIVATE /W4)
+else()
+    target_compile_options(catch PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
 add_custom_target(cpptest COMMAND $<TARGET_FILE:catch>)
