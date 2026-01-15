@@ -181,7 +181,7 @@ template<bool is_const>
 class Foundation::Iterator : public Site {
     using iterator_category = std::input_iterator_tag;
     using difference_type = std::ptrdiff_t;
-    using value_type = std14::conditional_t<is_const, Site const, Site>;
+    using value_type = std::conditional_t<is_const, Site const, Site>;
     using reference = value_type&;
     using pointer = value_type*;
 
@@ -218,7 +218,7 @@ class SpatialSliceIterator : public Site {
     using It = SpatialSliceIterator<is_const>;
     using iterator_category = std::input_iterator_tag;
     using difference_type = std::ptrdiff_t;
-    using value_type = std14::conditional_t<is_const, It const, It>;
+    using value_type = std::conditional_t<is_const, It const, It>;
     using reference = value_type&;
     using pointer = value_type*;
 

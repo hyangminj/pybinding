@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.20...3.31)
+
+# Allow older CMake versions in fetched dependencies (e.g., libsimdpp uses CMake 2.8)
+# This is needed for CMake 4.x compatibility with legacy dependencies
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Minimum CMake policy version for dependencies")
+
 project(pybinding_cppcore CXX)
 
 # Modern CMake: Set C++ standard
@@ -60,12 +65,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(fmt)
 
-# libsimdpp - SIMD abstraction library
+# libsimdpp - SIMD abstraction library (header-only, we just need the headers)
+# Use SOURCE_SUBDIR to a non-existent path to prevent CMake from processing its CMakeLists.txt
+# This avoids target name conflicts (e.g., 'check' target) with other dependencies
 FetchContent_Declare(
     libsimdpp
     URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
     URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SOURCE_SUBDIR simdpp  # Point to the simdpp subdir which has no CMakeLists.txt
 )
 FetchContent_MakeAvailable(libsimdpp)
 
@@ -173,8 +181,10 @@ target_include_directories(cppcore PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-# SIMD library include
-target_include_directories(cppcore SYSTEM PRIVATE ${libsimdpp_SOURCE_DIR})
+# SIMD library include (PUBLIC so that consumers like cppmodule can include simd headers)
+target_include_directories(cppcore SYSTEM PUBLIC
+    $<BUILD_INTERFACE:${libsimdpp_SOURCE_DIR}>
+)
 
 # Thread support (must come before target_link_libraries)
 find_package(Threads REQUIRED)

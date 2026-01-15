@@ -40,3 +40,9 @@ Chrono& Chrono::print(std::string msg) {
     fmt::print("{}{}\n", msg, str());
     return *this;
 }
+
+// fmt::formatter implementation for cpb::Chrono
+auto fmt::formatter<cpb::Chrono>::format(const cpb::Chrono& c, fmt::format_context& ctx) const
+    -> decltype(ctx.out()) {
+    return fmt::formatter<std::string>::format(c.str(), ctx);
+}

@@ -122,8 +122,12 @@ void HamiltonianModifiers::apply_to_onsite(System const& system, Fn lambda) cons
             );
 
             auto start = idx_t{0};
-            for (auto const& value : intrinsic_energy) {
-                onsite_energy.segment(start, nsites).setConstant(value);
+            // Use data() pointer iteration instead of range-based for loop
+            // (Eigen 3.4+ only supports range-based for on vectors, not matrices)
+            auto const* ie_data = intrinsic_energy.data();
+            auto const ie_size = intrinsic_energy.size();
+            for (idx_t i = 0; i < ie_size; ++i) {
+                onsite_energy.segment(start, nsites).setConstant(ie_data[i]);
                 start += nsites;
             }
         }
@@ -221,8 +225,12 @@ struct HoppingBuffer {
     /// Replicate each value from the `unit_hopping` matrix `num` times
     void reset_hoppings(idx_t num) {
         auto start = idx_t{0};
-        for (auto const& value : unit_hopping) {
-            hoppings.segment(start, num).setConstant(value);
+        // Use data() pointer iteration instead of range-based for loop
+        // (Eigen 3.4+ only supports range-based for on vectors, not matrices)
+        auto const* data = unit_hopping.data();
+        auto const total = unit_hopping.size();
+        for (idx_t i = 0; i < total; ++i) {
+            hoppings.segment(start, num).setConstant(data[i]);
             start += num;
         }
     }

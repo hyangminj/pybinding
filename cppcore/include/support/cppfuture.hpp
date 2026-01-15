@@ -1,50 +1,30 @@
 #pragma once
 #include <memory>
 #include <type_traits>
+#include <utility>
 
-// helper functions for use until C++14 brings this into std
-namespace cpb { namespace std14 {
+// C++17 is now the minimum standard.
+// This header provides backward-compatible aliases that map to std:: equivalents.
+// Kept for source compatibility with existing code.
 
-template<class T, class... Args>
-std::unique_ptr<T> make_unique(Args&&... args) {
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+namespace cpb {
 
-template<class T>
-auto cbegin(const T& t) -> decltype(t.cbegin()) {
-    return t.cbegin();
-}
-
-template<class T>
-auto cend(const T& t) -> decltype(t.cend()) {
-    return t.cend();
-}
-
-template <bool condition, class T = void>
-using enable_if_t = typename std::enable_if<condition, T>::type;
-
-template<bool condition, class If, class Else>
-using conditional_t = typename std::conditional<condition, If, Else>::type;
-
-template<class T>
-using add_const_t = typename std::add_const<T>::type;
-
-template<class T>
-using remove_const_t = typename std::remove_const<T>::type;
-
-template<class T>
-using remove_pointer_t = typename std::remove_pointer<T>::type;
-
-template<class T>
-using decay_t = typename std::decay<T>::type;
-
+// Aliases mapping old std14:: names to standard library (available since C++14/C++17)
+namespace std14 {
+    using std::make_unique;
+    using std::cbegin;
+    using std::cend;
+    using std::enable_if_t;
+    using std::conditional_t;
+    using std::add_const_t;
+    using std::remove_const_t;
+    using std::remove_pointer_t;
+    using std::decay_t;
 } // namespace std14
 
+// Aliases mapping old std17:: names to standard library (available since C++17)
 namespace std17 {
+    using std::as_const;
+} // namespace std17
 
-template<class T>
-constexpr std14::add_const_t<T>& as_const(T& x) noexcept { return x; }
-template <class T>
-void as_const(const T&&) = delete;
-
-}} // namespace cpb::std17
+} // namespace cpb

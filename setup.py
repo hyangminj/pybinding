@@ -40,12 +40,12 @@ class CMakeBuild(build_ext):
 
         # Check CMake version
         import re
-        from distutils.version import LooseVersion
+        from packaging.version import Version
 
-        cmake_version = LooseVersion(
+        cmake_version = Version(
             re.search(r"version\s*([\d.]+)", out.decode()).group(1)
         )
-        if cmake_version < "3.20.0":
+        if cmake_version < Version("3.20.0"):
             raise RuntimeError("CMake 3.20 or newer is required")
 
         for ext in self.extensions:
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         cmdclass={"build_ext": CMakeBuild},
         include_package_data=True,
         zip_safe=False,
-        python_requires=">=3.9",
+        python_requires=">=3.10",
         install_requires=[
             "numpy>=1.20",
             "scipy>=1.7",

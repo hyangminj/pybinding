@@ -144,7 +144,7 @@ template<class Derived> inline bool none_of(const DenseBase<Derived>& v) { retur
 template<bool is_const>
 class BasicCartesianArrayRef {
 public:
-    using Reference = std14::conditional_t<!is_const, Eigen::Ref<ArrayXf>,
+    using Reference = std::conditional_t<!is_const, Eigen::Ref<ArrayXf>,
                                            Eigen::Ref<ArrayXf const>>;
 
     BasicCartesianArrayRef(Reference x, Reference y,  Reference z)

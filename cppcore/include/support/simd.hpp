@@ -51,9 +51,9 @@ namespace detail {
     template<> struct select_vector<std::complex<double>> : select_vector<double> {};
 
     template<class T>
-    using requires_real = std14::enable_if_t<std::is_floating_point<T>::value, int>;
+    using requires_real = std::enable_if_t<std::is_floating_point<T>::value, int>;
     template<class T>
-    using requires_complex = std14::enable_if_t<!std::is_floating_point<T>::value, int>;
+    using requires_complex = std::enable_if_t<!std::is_floating_point<T>::value, int>;
 } // namespace detail
 
 /**
@@ -138,8 +138,26 @@ split_loop_t<step> split_loop(scalar_t const* p, idx_t start, idx_t end) {
  RAII class which disables floating-point denormals (flush-to-zero mode)
  */
 struct scope_disable_denormals {
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+    // x86/x64: Use SSE flush-to-zero mode
     CPB_ALWAYS_INLINE scope_disable_denormals() { _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON); }
     CPB_ALWAYS_INLINE ~scope_disable_denormals() { _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF); }
+#elif defined(__aarch64__) || defined(_M_ARM64)
+    // ARM64: Use FPCR register to set flush-to-zero mode
+    uint64_t old_fpcr;
+    CPB_ALWAYS_INLINE scope_disable_denormals() {
+        asm volatile("mrs %0, fpcr" : "=r"(old_fpcr));
+        uint64_t new_fpcr = old_fpcr | (1ULL << 24);  // FZ bit
+        asm volatile("msr fpcr, %0" : : "r"(new_fpcr));
+    }
+    CPB_ALWAYS_INLINE ~scope_disable_denormals() {
+        asm volatile("msr fpcr, %0" : : "r"(old_fpcr));
+    }
+#else
+    // Fallback: No-op for other platforms
+    CPB_ALWAYS_INLINE scope_disable_denormals() {}
+    CPB_ALWAYS_INLINE ~scope_disable_denormals() {}
+#endif
 };
 
 namespace detail {

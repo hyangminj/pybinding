@@ -1,5 +1,5 @@
 set(PYBIND11_CPP_STANDARD "-std=c++17" CACHE STRING "Match core library")
-set(PYBIND11_PYTHON_VERSION 3.9 CACHE STRING "Minimum required Python version")
+set(PYBIND11_PYTHON_VERSION 3.10 CACHE STRING "Minimum required Python version")
 add_subdirectory(deps/pybind11 EXCLUDE_FROM_ALL)
 
 pybind11_add_module(_pybinding THIN_LTO

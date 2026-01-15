@@ -20,7 +20,7 @@ public:
     explicit OpaqueIntegerAlias(idx_t value) : _value(static_cast<T>(value)) {}
     explicit OpaqueIntegerAlias(size_t value) : _value(static_cast<T>(value)) {}
 
-    template<class U, class = std14::enable_if_t<std::is_same<U, T>::value && !has_constructor>>
+    template<class U, class = std::enable_if_t<std::is_same<U, T>::value && !has_constructor>>
     explicit OpaqueIntegerAlias(U value) : _value(value) {}
 
     template<class OtherTag>

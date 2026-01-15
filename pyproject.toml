@@ -4,6 +4,7 @@ requires = [
     "wheel",
     "cmake>=3.20",
     "pybind11>=2.13.0",
+    "packaging>=21.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -12,7 +13,7 @@ name = "pybinding"
 version = "0.10.0"
 description = "Package for numerical tight-binding calculations in solid state physics"
 readme = "readme.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "BSD"}
 authors = [
     {name = "Dean Moldovan", email = "dean0x7d@gmail.com"}
@@ -25,12 +26,10 @@ classifiers = [
     "License :: OSI Approved :: BSD License",
     "Programming Language :: C++",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
@@ -77,7 +76,7 @@ filterwarnings = ["ignore::ImportWarning"]
 
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312', 'py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -98,7 +97,7 @@ extend-exclude = '''
 
 [tool.ruff]
 line-length = 100
-target-version = "py39"
+target-version = "py310"
 select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
@@ -127,7 +126,7 @@ exclude = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.10"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -146,8 +145,8 @@ exclude = [
 ]
 
 [tool.cibuildwheel]
-# Build for Python 3.9+
-build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
+# Build for Python 3.10+ (per SPEC 0 - drop 3.9 which reaches EOL Oct 2025)
+build = "cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_* *-manylinux_i686"
 
 # Test the built wheels
