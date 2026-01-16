@@ -156,4 +156,9 @@ class FuzzyEqual:
     def _(self, actual, expected):
         specials = [s for s in ['__getstate__', '__getinitargs__'] if hasattr(actual, s)]
         for s in specials:
-            self._assert(getattr(actual, s)(), getattr(expected, s)(), context="{}()".format(s))
+            actual_val = getattr(actual, s)()
+            expected_val = getattr(expected, s)()
+            # Skip None values to avoid infinite recursion (Python 3.11+ compatibility)
+            if actual_val is None and expected_val is None:
+                continue
+            self._assert(actual_val, expected_val, context="{}()".format(s))

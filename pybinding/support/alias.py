@@ -14,21 +14,21 @@ class AliasArray(np.ndarray):
     Examples
     --------
     >>> a = AliasArray([0, 1, 0], mapping={"A": 0, "B": 1})
-    >>> list(a == 0)
+    >>> [bool(x) for x in (a == 0)]
     [True, False, True]
-    >>> list(a == "A")
+    >>> [bool(x) for x in (a == "A")]
     [True, False, True]
-    >>> list(a != "A")
+    >>> [bool(x) for x in (a != "A")]
     [False, True, False]
     >>> a = AliasArray([0, 1, 0, 2], mapping={"A|1": 0, "B": 1, "A|2": 2})
-    >>> list(a == "A")
+    >>> [bool(x) for x in (a == "A")]
     [True, False, True, True]
-    >>> list(a != "A")
+    >>> [bool(x) for x in (a != "A")]
     [False, True, False, False]
     >>> import pickle
     >>> s = pickle.dumps(a)
     >>> a2 = pickle.loads(s)
-    >>> list(a2 == "A")
+    >>> [bool(x) for x in (a2 == "A")]
     [True, False, True, True]
     """
     def __new__(cls, array, mapping):
@@ -81,16 +81,16 @@ class AliasCSRMatrix(csr_matrix):
     --------
     >>> from scipy.sparse import spdiags
     >>> m = AliasCSRMatrix(spdiags([1, 2, 1], [0], 3, 3), mapping={'A': 1, 'B': 2})
-    >>> list(m.data == 'A')
+    >>> [bool(x) for x in (m.data == 'A')]
     [True, False, True]
-    >>> list(m.tocoo().data == 'A')
+    >>> [bool(x) for x in (m.tocoo().data == 'A')]
     [True, False, True]
-    >>> list(m[:2].data == 'A')
+    >>> [bool(x) for x in (m[:2].data == 'A')]
     [True, False]
     >>> import pickle
     >>> s = pickle.dumps(m)
     >>> m2 = pickle.loads(s)
-    >>> list(m2.data == 'A')
+    >>> [bool(x) for x in (m2.data == 'A')]
     [True, False, True]
     """
     def __init__(self, *args, **kwargs):
@@ -139,13 +139,13 @@ class AliasIndex:
     --------
     >>> l = np.array([1, 2, 3])
     >>> ai = AliasIndex("A", len(l))
-    >>> list(l[ai == "A"])
+    >>> [int(x) for x in l[ai == "A"]]
     [1, 2, 3]
-    >>> list(l[ai == "B"])
+    >>> [int(x) for x in l[ai == "B"]]
     []
-    >>> list(l[ai != "A"])
+    >>> [int(x) for x in l[ai != "A"]]
     []
-    >>> list(l[ai != "B"])
+    >>> [int(x) for x in l[ai != "B"]]
     [1, 2, 3]
     >>> np.logical_and([True, False, True], ai == "A")
     array([ True, False,  True])
@@ -159,9 +159,9 @@ class AliasIndex:
     'A'
     >>> hash(ai) == hash("A")
     True
-    >>> int(ai.eye)
-    1
-    >>> np.allclose(AliasIndex("A", 1, (2, 2)).eye, np.eye(2))
+    >>> ai.eye
+    array([[1.]])
+    >>> bool(np.allclose(AliasIndex("A", 1, (2, 2)).eye, np.eye(2)))
     True
     """
     class LazyArray:
@@ -223,10 +223,16 @@ class SplitName(str):
         return self.split("|")[0]
 
     def __eq__(self, other):
-        return super().__eq__(other) or self.first == other
+        result = super().__eq__(other)
+        if result is NotImplemented:
+            return self.first == other
+        return result or self.first == other
 
     def __ne__(self, other):
-        return super().__ne__(other) and self.first != other
+        result = super().__ne__(other)
+        if result is NotImplemented:
+            return self.first != other
+        return result and self.first != other
 
     def __hash__(self):
         return super().__hash__()
