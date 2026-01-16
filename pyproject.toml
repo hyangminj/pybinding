@@ -9,16 +9,20 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pybinding"
+name = "pybinding-hj"
 version = "0.10.0"
-description = "Package for numerical tight-binding calculations in solid state physics"
+description = "Modernized fork of pybinding - numerical tight-binding calculations with Python 3.14 and NumPy 2.x support"
 readme = "readme.md"
 requires-python = ">=3.10"
 license = {text = "BSD"}
 authors = [
-    {name = "Dean Moldovan", email = "dean0x7d@gmail.com"}
+    {name = "Dean Moldovan", email = "dean0x7d@gmail.com"},
+    {name = "HyangMin Jeong"}
 ]
-keywords = ["pybinding", "tight-binding", "solid-state", "physics", "cmt"]
+maintainers = [
+    {name = "HyangMin Jeong"}
+]
+keywords = ["pybinding", "tight-binding", "solid-state", "physics", "cmt", "condensed-matter"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -55,10 +59,11 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/dean0x7d/pybinding"
+Homepage = "https://github.com/hyangminj/pybinding"
 Documentation = "http://docs.pybinding.site/"
-Repository = "https://github.com/dean0x7d/pybinding"
-Issues = "https://github.com/dean0x7d/pybinding/issues"
+Repository = "https://github.com/hyangminj/pybinding"
+Issues = "https://github.com/hyangminj/pybinding/issues"
+Upstream = "https://github.com/dean0x7d/pybinding"
 
 [tool.setuptools]
 packages = ["pybinding"]

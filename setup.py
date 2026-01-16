@@ -167,7 +167,7 @@ if __name__ == "__main__":
     # (pyproject.toml is the preferred method)
 
     setup(
-        name="pybinding",
+        name="pybinding-hj",
         version=get_version(),
         packages=find_packages(exclude=["cppcore", "cppmodule", "test*"]) + ["pybinding.tests"],
         package_dir={"pybinding.tests": "tests"},
