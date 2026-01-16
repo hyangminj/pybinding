@@ -10,7 +10,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybinding-hj"
-version = "0.10.0"
+version = "0.10.1"
 description = "Modernized fork of pybinding - numerical tight-binding calculations with Python 3.14 and NumPy 2.x support"
 readme = "readme.md"
 requires-python = ">=3.10"
@@ -65,8 +65,12 @@ Repository = "https://github.com/hyangminj/pybinding"
 Issues = "https://github.com/hyangminj/pybinding/issues"
 Upstream = "https://github.com/dean0x7d/pybinding"
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pybinding*"]
+exclude = ["tests*"]
+
 [tool.setuptools]
-packages = ["pybinding"]
 zip-safe = false
 
 [tool.setuptools.package-data]
