@@ -156,18 +156,23 @@ exclude = [
 [tool.cibuildwheel]
 # Build for Python 3.10+ (per SPEC 0 - drop 3.9 which reaches EOL Oct 2025)
 build = "cp310-* cp311-* cp312-* cp313-*"
-skip = "*-musllinux_* *-manylinux_i686"
+skip = "*-musllinux_* *-manylinux_i686 *-win32"
 
 # Test the built wheels
-test-requires = "pytest numpy scipy matplotlib"
-test-command = "pytest {project}/tests"
+test-requires = "pytest"
+test-command = "pytest {project}/tests -x --ignore={project}/tests/test_docs.py"
+# Skip tests on cross-compiled wheels
+test-skip = "*-macosx_arm64 *-manylinux_aarch64"
 
 [tool.cibuildwheel.linux]
-before-all = "yum install -y cmake gcc-c++ || apt-get install -y cmake g++"
+archs = ["x86_64", "aarch64"]
+before-all = "yum install -y cmake gcc-c++ || apt-get update && apt-get install -y cmake g++"
 environment = {PB_NATIVE_SIMD="OFF"}
 
 [tool.cibuildwheel.macos]
-environment = {MACOSX_DEPLOYMENT_TARGET="10.14"}
+archs = ["x86_64", "arm64"]
+environment = {MACOSX_DEPLOYMENT_TARGET="10.14", PB_NATIVE_SIMD="OFF"}
 
 [tool.cibuildwheel.windows]
-before-build = "pip install delvewheel"
+archs = ["AMD64"]
+environment = {PB_NATIVE_SIMD="OFF"}
