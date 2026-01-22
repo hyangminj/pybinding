@@ -60,8 +60,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22
         env:
-          # Build Python 3.10-3.13
-          CIBW_BUILD: cp310-* cp311-* cp312-* cp313-*
+          # Build Python 3.9-3.13 (aligned with pyproject.toml)
+          CIBW_BUILD: cp39-* cp310-* cp311-* cp312-* cp313-*
           # Skip musllinux and 32-bit
           CIBW_SKIP: "*-musllinux_* *-manylinux_i686 *-win32"
           # Architecture settings
@@ -71,14 +71,17 @@ jobs:
           # Environment
           CIBW_ENVIRONMENT: "PB_NATIVE_SIMD=OFF"
           CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=10.14 PB_NATIVE_SIMD=OFF"
-          # Linux build dependencies
+          # Linux build dependencies (improved fallback logic)
           CIBW_BEFORE_ALL_LINUX: >
-            yum install -y cmake gcc-c++ || apt-get update && apt-get install -y cmake g++
-          # Test configuration
-          CIBW_TEST_REQUIRES: pytest
+            (yum install -y cmake gcc-c++ 2>/dev/null) || (apt-get update && apt-get install -y cmake g++)
+          # Test configuration (aligned with CI workflow)
+          CIBW_TEST_REQUIRES: pytest numpy scipy matplotlib
           CIBW_TEST_COMMAND: pytest {project}/tests -x -v --ignore={project}/tests/test_docs.py
           # Skip testing on cross-compiled wheels
           CIBW_TEST_SKIP: "*-macosx_arm64 *-manylinux_aarch64"
+          # Windows: use delvewheel to bundle DLL dependencies
+          CIBW_BEFORE_BUILD_WINDOWS: pip install delvewheel
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: delvewheel repair -w {dest_dir} {wheel}
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4

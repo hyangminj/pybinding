@@ -151,14 +151,14 @@ build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 skip = "*-musllinux_* *-manylinux_i686 *-win32"
 
 # Test the built wheels
-test-requires = "pytest"
+test-requires = ["pytest", "numpy", "scipy", "matplotlib"]
 test-command = "pytest {project}/tests -x --ignore={project}/tests/test_docs.py"
 # Skip tests on cross-compiled wheels
 test-skip = "*-macosx_arm64 *-manylinux_aarch64"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"]
-before-all = "yum install -y cmake gcc-c++ || apt-get update && apt-get install -y cmake g++"
+before-all = "(yum install -y cmake gcc-c++ 2>/dev/null) || (apt-get update && apt-get install -y cmake g++)"
 environment = {PB_NATIVE_SIMD="OFF"}
 
 [tool.cibuildwheel.macos]
@@ -168,3 +168,5 @@ environment = {MACOSX_DEPLOYMENT_TARGET="10.14", PB_NATIVE_SIMD="OFF"}
 [tool.cibuildwheel.windows]
 archs = ["AMD64"]
 environment = {PB_NATIVE_SIMD="OFF"}
+before-build = "pip install delvewheel"
+repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
