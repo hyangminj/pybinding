@@ -5,17 +5,16 @@ import numpy as np
 import pybinding as pb
 from pybinding.repository import graphene, examples
 
-
 polygons = {
-    'triangle': pb.regular_polygon(3, radius=1.1),
-    'triangle90': pb.regular_polygon(3, radius=1.1, angle=math.pi/2),
-    'diamond': pb.regular_polygon(4, radius=1),
-    'square': pb.regular_polygon(4, radius=1, angle=math.pi/4),
-    'pentagon': pb.regular_polygon(5, radius=1),
+    "triangle": pb.regular_polygon(3, radius=1.1),
+    "triangle90": pb.regular_polygon(3, radius=1.1, angle=math.pi / 2),
+    "diamond": pb.regular_polygon(4, radius=1),
+    "square": pb.regular_polygon(4, radius=1, angle=math.pi / 4),
+    "pentagon": pb.regular_polygon(5, radius=1),
 }
 
 
-@pytest.fixture(scope='module', ids=list(polygons.keys()), params=polygons.values())
+@pytest.fixture(scope="module", ids=list(polygons.keys()), params=polygons.values())
 def polygon(request):
     return request.param
 
@@ -25,7 +24,7 @@ def test_polygon_expected(polygon, baseline, plot_if_fails):
     expected = baseline(model.system)
     plot_if_fails(model.system, expected, "plot")
     plot_if_fails(polygon, polygon, "plot")
-    assert pytest.fuzzy_equal(model.system.impl, expected.impl, 1.e-4, 1.e-6)
+    assert pytest.fuzzy_equal(model.system.impl, expected.impl, 1.0e-4, 1.0e-6)
 
 
 def test_polygon_api():
@@ -44,17 +43,19 @@ def test_freeform(baseline, plot_if_fails):
         def contains(x, y, _):
             r = np.sqrt(x**2 + y**2)
             return np.logical_and(inner_radius < r, r < outer_radius)
+
         return pb.FreeformShape(contains, width=[2 * outer_radius, 2 * outer_radius])
 
-    assert pytest.fuzzy_equal(donut(0.5, 1).vertices,
-                              [[-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0]] * 2)
+    assert pytest.fuzzy_equal(
+        donut(0.5, 1).vertices, [[-1, -1, 0], [1, -1, 0], [-1, 1, 0], [1, 1, 0]] * 2
+    )
 
     shape = donut(0.6, 1.1)
     model = pb.Model(graphene.monolayer(), shape)
     expected = baseline(model.system)
-    plot_if_fails(model.system, expected, 'plot')
-    plot_if_fails(shape, shape, 'plot')
-    assert pytest.fuzzy_equal(model.system.impl, expected.impl, 1.e-4, 1.e-6)
+    plot_if_fails(model.system, expected, "plot")
+    plot_if_fails(shape, shape, "plot")
+    assert pytest.fuzzy_equal(model.system.impl, expected.impl, 1.0e-4, 1.0e-6)
 
 
 def test_freeform_plot():
@@ -62,6 +63,7 @@ def test_freeform_plot():
         def contains(x, y, z):
             r = np.sqrt(x**2 + y**2 + z**2)
             return r < radius
+
         return pb.FreeformShape(contains, width=[2 * radius] * 3)
 
     with pytest.raises(RuntimeError) as excinfo:
@@ -87,7 +89,7 @@ def test_primitive():
 
     model = pb.Model(
         graphene.monolayer().with_offset([0.5 * graphene.a, 0.5 * graphene.a_cc]),
-        pb.primitive(2, 2)
+        pb.primitive(2, 2),
     )
     assert model.system.num_sites == 8
     assert np.isclose(model.system.x.min(), -graphene.a, rtol=1e-3)

@@ -3,6 +3,7 @@
 Used to create functions which express some feature of a tight-binding model,
 such as various fields, defects or geometric deformations.
 """
+
 import inspect
 import functools
 import warnings
@@ -16,9 +17,17 @@ from .support.alias import AliasIndex, SplitName
 from .support.deprecated import LoudDeprecationWarning
 from .utils.misc import decorator_decorator
 
-__all__ = ['constant_potential', 'force_double_precision', 'force_complex_numbers',
-           'hopping_energy_modifier', 'hopping_generator', 'onsite_energy_modifier',
-           'site_generator', 'site_position_modifier', 'site_state_modifier']
+__all__ = [
+    "constant_potential",
+    "force_double_precision",
+    "force_complex_numbers",
+    "hopping_energy_modifier",
+    "hopping_generator",
+    "onsite_energy_modifier",
+    "site_generator",
+    "site_position_modifier",
+    "site_state_modifier",
+]
 
 
 def _process_modifier_args(args, keywords, requested_argnames):
@@ -49,15 +58,15 @@ def _process_modifier_args(args, keywords, requested_argnames):
             return obj
 
     kwargs = dict(zip(keywords, args))
-    requested_kwargs = {k: process(v) for k, v in kwargs.items()
-                        if k in requested_argnames}
+    requested_kwargs = {k: process(v) for k, v in kwargs.items() if k in requested_argnames}
 
     if "sites" in requested_argnames and "sites" not in kwargs:
         requested_kwargs["sites"] = Sites((kwargs[k] for k in ("x", "y", "z")), kwargs["sub_id"])
 
     if "system" in keywords:
-        requested_kwargs.update({p: getattr(kwargs["system"], p) for p in "xyz"
-                                 if p in requested_argnames})
+        requested_kwargs.update(
+            {p: getattr(kwargs["system"], p) for p in "xyz" if p in requested_argnames}
+        )
 
     return requested_kwargs
 
@@ -80,8 +89,10 @@ def _check_modifier_spec(func, keywords, has_sites=False):
     unexpected = ", ".join([name for name in argnames if name not in keywords])
     if unexpected:
         expected = ", ".join(keywords)
-        raise RuntimeError("Unexpected argument(s) in modifier: {unexpected}\n"
-                           "Arguments must be any of: {expected}".format(**locals()))
+        raise RuntimeError(
+            "Unexpected argument(s) in modifier: {unexpected}\n"
+            "Arguments must be any of: {expected}".format(**locals())
+        )
 
 
 def _sanitize_modifier_result(result, args, expected_num_return, can_be_complex):
@@ -93,8 +104,10 @@ def _sanitize_modifier_result(result, args, expected_num_return, can_be_complex)
         raise TypeError("Modifiers must return ndarray(s)")
 
     if len(result) != expected_num_return:
-        raise TypeError("Modifier expected to return {} ndarray(s), "
-                        "but got {}".format(expected_num_return, len(result)))
+        raise TypeError(
+            "Modifier expected to return {} ndarray(s), "
+            "but got {}".format(expected_num_return, len(result))
+        )
 
     if any(r.size != prime_arg.size for r in result):
         raise TypeError("Modifier must return the same size ndarray as the arguments")
@@ -107,8 +120,10 @@ def _sanitize_modifier_result(result, args, expected_num_return, can_be_complex)
             if np.iscomplexobj(r) and can_be_complex:
                 return r  # fine, the model will be upgraded to complex for certain modifiers
             else:
-                raise TypeError("Modifier result is '{}', but expected same kind as '{}'"
-                                " (precision is flexible)".format(r.dtype, prime_arg.dtype))
+                raise TypeError(
+                    "Modifier result is '{}', but expected same kind as '{}'"
+                    " (precision is flexible)".format(r.dtype, prime_arg.dtype)
+                )
 
     def moveaxis(r):
         """If the result is a new contiguous array, the axis needs to be moved back"""
@@ -156,7 +171,7 @@ def _make_modifier(func, kind, init, keywords, has_sites=True, num_return=1, can
         return _sanitize_modifier_result(result, args, num_return, can_be_complex)
 
     class Modifier(kind):
-        callsig = getattr(func, 'callsig', None)
+        callsig = getattr(func, "callsig", None)
         if not callsig:
             callsig = get_call_signature()
             callsig.function = func
@@ -225,15 +240,18 @@ def site_state_modifier(min_neighbors=0):
             vacancy(position=[0, 0], radius=0.1)
         )
     """
-    return functools.partial(_make_modifier, kind=_cpp.SiteStateModifier,
-                             init=dict(min_neighbors=min_neighbors),
-                             keywords="state, x, y, z, sub_id")
+    return functools.partial(
+        _make_modifier,
+        kind=_cpp.SiteStateModifier,
+        init=dict(min_neighbors=min_neighbors),
+        keywords="state, x, y, z, sub_id",
+    )
 
 
 @decorator_decorator
 def site_position_modifier(*_):
     """site_position_modifier()
-    
+
     Modify the position of lattice sites, e.g.\  to apply geometric deformations
 
     Notes
@@ -271,8 +289,13 @@ def site_position_modifier(*_):
             triaxial_displacement(c=0.15)
         )
     """
-    return functools.partial(_make_modifier, kind=_cpp.PositionModifier, init={},
-                             keywords="x, y, z, sub_id", num_return=3)
+    return functools.partial(
+        _make_modifier,
+        kind=_cpp.PositionModifier,
+        init={},
+        keywords="x, y, z, sub_id",
+        num_return=3,
+    )
 
 
 @decorator_decorator
@@ -323,9 +346,13 @@ def onsite_energy_modifier(is_double=False, **kwargs):
     if "double" in kwargs:
         warnings.warn("Use `is_double` parameter name instead of `double`", LoudDeprecationWarning)
         is_double = kwargs["double"]
-    return functools.partial(_make_modifier, kind=_cpp.OnsiteModifier,
-                             init=dict(is_double=is_double), can_be_complex=True,
-                             keywords="energy, x, y, z, sub_id")
+    return functools.partial(
+        _make_modifier,
+        kind=_cpp.OnsiteModifier,
+        init=dict(is_double=is_double),
+        can_be_complex=True,
+        keywords="energy, x, y, z, sub_id",
+    )
 
 
 @decorator_decorator
@@ -338,7 +365,7 @@ def hopping_energy_modifier(is_double=False, is_complex=False, **kwargs):
         Requires the model to use double precision floating point values.
         Defaults to single precision otherwise.
     is_complex : bool
-        Requires the model to use complex numbers. Even if this is set to `False`, 
+        Requires the model to use complex numbers. Even if this is set to `False`,
         the model will automatically switch to complex numbers if it finds that a
         modifier has returned complex numbers for real input. Manually setting this
         argument to `True` will speed up model build time slightly, but it's not
@@ -382,10 +409,14 @@ def hopping_energy_modifier(is_double=False, is_complex=False, **kwargs):
     if "double" in kwargs:
         warnings.warn("Use `is_double` parameter name instead of `double`", LoudDeprecationWarning)
         is_double = kwargs["double"]
-    return functools.partial(_make_modifier, kind=_cpp.HoppingModifier,
-                             init=dict(is_double=is_double, is_complex=is_complex),
-                             can_be_complex=True, has_sites=False,
-                             keywords="energy, x1, y1, z1, x2, y2, z2, hop_id")
+    return functools.partial(
+        _make_modifier,
+        kind=_cpp.HoppingModifier,
+        init=dict(is_double=is_double, is_complex=is_complex),
+        can_be_complex=True,
+        has_sites=False,
+        keywords="energy, x1, y1, z1, x2, y2, z2, hop_id",
+    )
 
 
 def constant_potential(magnitude):
@@ -396,25 +427,31 @@ def constant_potential(magnitude):
     magnitude : float
         In units of eV.
     """
+
     @onsite_energy_modifier
     def f(energy, sub_id):
         return energy + sub_id.eye * magnitude
+
     return f
 
 
 def force_double_precision():
     """Forces the model to use double precision even if that's not require by any modifier"""
+
     @onsite_energy_modifier(is_double=True)
     def f(energy):
         return energy
+
     return f
 
 
 def force_complex_numbers():
     """Forces the model to use complex numbers even if that's not require by any modifier"""
+
     @hopping_energy_modifier(is_complex=True)
     def f(energy):
         return energy
+
     return f
 
 
@@ -442,7 +479,7 @@ def _make_generator(func, kind, name, energy, keywords, process_result=lambda x,
         return process_result(result, *args)
 
     class Generator(kind):
-        callsig = getattr(func, 'callsig', None)
+        callsig = getattr(func, "callsig", None)
         if not callsig:
             callsig = get_call_signature()
             callsig.function = func
@@ -492,8 +529,13 @@ def site_generator(name, energy):
     Tuple[np.ndarray, np.ndarray, np.ndarray]
         Tuple of (x, y, z) arrays which indicate the positions of the new sites.
     """
-    return functools.partial(_make_generator, kind=_cpp.SiteGenerator,
-                             name=name, energy=energy, keywords="system, x, y, z")
+    return functools.partial(
+        _make_generator,
+        kind=_cpp.SiteGenerator,
+        name=name,
+        energy=energy,
+        keywords="system, x, y, z",
+    )
 
 
 @decorator_decorator
@@ -524,6 +566,7 @@ def hopping_generator(name, energy):
     Tuple[np.ndarray, np.ndarray]
         A pair of arrays of indices which form the new hoppings.
     """
+
     def process_result(result, system):
         def process(v):
             v = np.asarray(v)
@@ -531,7 +574,14 @@ def hopping_generator(name, energy):
                 return np.flatnonzero(v)
             else:
                 return v
+
         return tuple(process(v) for v in result)
 
-    return functools.partial(_make_generator, kind=_cpp.HoppingGenerator, name=name, energy=energy,
-                             process_result=process_result, keywords="system, x, y, z")
+    return functools.partial(
+        _make_generator,
+        kind=_cpp.HoppingGenerator,
+        name=name,
+        energy=energy,
+        process_result=process_result,
+        keywords="system, x, y, z",
+    )

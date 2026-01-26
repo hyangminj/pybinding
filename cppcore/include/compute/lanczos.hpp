@@ -51,7 +51,7 @@ real_t lanczos_spmv(real_t b_prev, SparseMatrixX<scalar_t> const& matrix,
     b = norm(v0)
     return b
  */
-#if SIMDPP_USE_NULL // generic version
+#if !CPB_USE_SIMD || SIMDPP_USE_NULL // generic version (no SIMD or null SIMD)
 template<class scalar_t, class real_t = num::get_real_t<scalar_t>> CPB_ALWAYS_INLINE
 real_t lanczos_axpy(real_t a, VectorX<scalar_t> const& v1, VectorX<scalar_t>& v0) {
     auto const size = v0.size();
@@ -88,7 +88,7 @@ real_t lanczos_axpy(real_t a, VectorX<scalar_t> const& v1, VectorX<scalar_t>& v0
 
     return std::sqrt(simd::reduce_add(norm2_vec) + norm2_remainder);
 }
-#endif // SIMDPP_USE_NULL
+#endif // !CPB_USE_SIMD || SIMDPP_USE_NULL
 
 struct LanczosBounds {
     double min; ///< the lowest eigenvalue

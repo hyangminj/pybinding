@@ -1,4 +1,5 @@
 """Utility functions for getting data to/from files"""
+
 import gzip
 import os
 import pathlib
@@ -6,12 +7,12 @@ import pickle
 
 from ..utils import decorator_decorator
 
-__all__ = ['pickleable', 'save', 'load']
+__all__ = ["pickleable", "save", "load"]
 
 
 def _normalize(file):
     """Convenience function to support path objects."""
-    if 'Path' in type(file).__name__:
+    if "Path" in type(file).__name__:
         return str(file)
     else:
         return file
@@ -19,7 +20,7 @@ def _normalize(file):
 
 def _add_extension(file):
     """Append '.pbz' if the file has no extension
-    
+
     Examples
     --------
     >>> _add_extension("plain")
@@ -52,7 +53,7 @@ def save(obj, file):
         May be a `str`, a `pathlib` object or a file object created with `open()`.
     """
     file = _add_extension(_normalize(file))
-    with gzip.open(file, 'wb') as f:
+    with gzip.open(file, "wb") as f:
         pickle.dump(obj, f, protocol=4)
 
 
@@ -71,12 +72,12 @@ def load(file):
     if isinstance(file, str) and not os.path.exists(file) and os.path.exists(file_ext):
         file = file_ext
 
-    with gzip.open(file, 'rb') as f:
+    with gzip.open(file, "rb") as f:
         return pickle.load(f)
 
 
 @decorator_decorator
-def pickleable(props="", version: int=0):
+def pickleable(props="", version: int = 0):
     props = props.split()
 
     def getstate(self):
@@ -91,13 +92,14 @@ def pickleable(props="", version: int=0):
             return
 
         if state["version"] != version:
-            raise RuntimeError("Can't create class {} v{} from incompatible data v{}".format(
-                type(self), version, state["version"]
-            ))
+            raise RuntimeError(
+                "Can't create class {} v{} from incompatible data v{}".format(
+                    type(self), version, state["version"]
+                )
+            )
 
         self.__dict__.update(state["dict"])
-        props_state = {name: value for name, value in state.get("props", {})
-                       if name in props}
+        props_state = {name: value for name, value in state.get("props", {}) if name in props}
         for name, value in props_state:
             setattr(self, name, value)
 

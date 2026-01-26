@@ -1,11 +1,11 @@
 import copy
 import numpy as np
 
-__all__ = ['FuzzySet']
+__all__ = ["FuzzySet"]
 
 
 class FuzzySet:
-    def __init__(self, iterable=None, rtol=1.e-3, atol=1.e-5):
+    def __init__(self, iterable=None, rtol=1.0e-3, atol=1.0e-5):
         self.data = []
         self.rtol = rtol
         self.atol = atol

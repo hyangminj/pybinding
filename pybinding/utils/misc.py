@@ -21,7 +21,7 @@ def to_list(o):
         return [o] if o is not None else []
 
 
-def with_defaults(options: dict, defaults_dict: dict=None, **defaults_kwargs):
+def with_defaults(options: dict, defaults_dict: dict = None, **defaults_kwargs):
     """Return a dict where missing keys are filled in by defaults
 
     >>> options = dict(hello=0)
@@ -87,6 +87,7 @@ def decorator_decorator(decorator_wrapper):
     >>> bar(2)
     2 default
     """
+
     @wraps(decorator_wrapper)
     def new_wrapper(*args, **kwargs):
         try:
@@ -98,9 +99,11 @@ def decorator_decorator(decorator_wrapper):
             args[0].callsig = callsig
             return decorator_wrapper()(args[0])
         else:
+
             def deferred(cls_or_func):
                 cls_or_func.callsig = callsig
                 return decorator_wrapper(*args, **kwargs)(cls_or_func)
+
             return deferred
 
     return new_wrapper
@@ -141,7 +144,7 @@ def rotate_axes(position, axes):
     >>> rotate_axes([1, 2, 3], "yz")
     (2, 3, 1)
     """
-    missing_axes = set('xyz') - set(axes)
+    missing_axes = set("xyz") - set(axes)
     for a in missing_axes:
         axes += a
     assert len(axes) == 3

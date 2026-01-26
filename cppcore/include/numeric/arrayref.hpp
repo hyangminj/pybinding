@@ -4,9 +4,11 @@
 #include "numeric/traits.hpp"
 
 #include <algorithm>
+#include <array>
+#include <complex>
+#include <cstdint>
 #include <numeric>
 #include <stdexcept>
-#include <array>
 
 namespace cpb { namespace num {
 

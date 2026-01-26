@@ -1,4 +1,5 @@
 """Multi-threaded functions for parameter sweeps"""
+
 import sys
 import inspect
 import itertools
@@ -13,7 +14,7 @@ from . import _cpp
 from .utils import cpuinfo, progressbar, decorator_decorator
 from .results import Sweep, NDSweep
 
-__all__ = ['num_cores', 'parallel_for', 'parallelize', 'sweep', 'ndsweep']
+__all__ = ["num_cores", "parallel_for", "parallelize", "sweep", "ndsweep"]
 
 num_cores = cpuinfo.physical_core_count()
 
@@ -84,6 +85,7 @@ class Hooks:
     plot : list of callable
         Called once in a while with a `result` argument to be plotted.
     """
+
     def __init__(self):
         self.first = []
         self.status = []
@@ -109,6 +111,7 @@ class Config:
     pbar_fd : {sys.stdout, sys.stderr, None}
         Output stream. The progress bar is always the last line of output.
     """
+
     def __init__(self, callsig, num_threads, queue_size):
         self.callsig = callsig
         self.num_threads = num_threads
@@ -135,6 +138,7 @@ class Config:
 
 class DefaultStatus:
     """Default status reporter"""
+
     def __init__(self, params, sequence):
         self.params = params
         self.sequence = sequence
@@ -145,8 +149,9 @@ class DefaultStatus:
         self.template = "{{count:{}}}| {{vars:{}}} | {{report}}".format(count_width, vars_width)
 
     def _vars(self, idx):
-        return ", ".join("{} = {:.2g}".format(k, v)
-                         for k, v in zip(self.params, self.sequence[idx]))
+        return ", ".join(
+            "{} = {:.2g}".format(k, v) for k, v in zip(self.params, self.sequence[idx])
+        )
 
     def __call__(self, deferred, idx, count):
         report = deferred.solver.report(shortform=True)
@@ -169,6 +174,7 @@ class Factory:
     config : Config
     hooks : Hooks
     """
+
     def __init__(self, variables, fixtures, produce, config):
         self.variables = variables
         self.fixtures = fixtures
@@ -178,9 +184,9 @@ class Factory:
         self.sequence = list(itertools.product(*variables))
 
         self.hooks = Hooks()
-        self.hooks.status.append(DefaultStatus(
-            inspect.signature(self.produce).parameters, self.sequence
-        ))
+        self.hooks.status.append(
+            DefaultStatus(inspect.signature(self.produce).parameters, self.sequence)
+        )
 
 
 class ParallelFor:
@@ -193,6 +199,7 @@ class ParallelFor:
     make_result : callable
         Creates the final result from raw data. See `_make_result` prototype.
     """
+
     def __init__(self, factory, make_result=None):
         self.factory = factory
         self.hooks = factory.hooks
@@ -210,8 +217,11 @@ class ParallelFor:
         if self.config.num_threads == 1:
             self.loop = _sequential_for
         else:
-            self.loop = partial(_parallel_for, num_threads=self.config.num_threads,
-                                queue_size=self.config.queue_size)
+            self.loop = partial(
+                _parallel_for,
+                num_threads=self.config.num_threads,
+                queue_size=self.config.queue_size,
+            )
 
         self.called_first = False
         self.result = None
@@ -257,6 +267,7 @@ class ParallelFor:
             return
 
         from .support.pickle import save
+
         save(result, self.config.filename)
 
     def _plot(self, result):
@@ -343,7 +354,7 @@ def parallelize(num_threads=num_cores, queue_size=num_cores, **kwargs):
 
         results = parallel_for(factory)
     """
-    callsig = kwargs.pop('callsig', None)
+    callsig = kwargs.pop("callsig", None)
     if not callsig:
         callsig = get_call_signature(up=2)
 
@@ -353,8 +364,7 @@ def parallelize(num_threads=num_cores, queue_size=num_cores, **kwargs):
         variables = tuple(kwargs[k] for k in params if k in kwargs)
         fixtures = {k: v.default for k, v in params.items() if k not in kwargs}
 
-        return Factory(variables, fixtures, produce_func,
-                       Config(callsig, num_threads, queue_size))
+        return Factory(variables, fixtures, produce_func, Config(callsig, num_threads, queue_size))
 
     return decorator
 
@@ -378,7 +388,7 @@ def sweep(factory, plot=lambda r: r.plot(), labels=None, tags=None, silent=False
     :class:`~pybinding.Sweep`
     """
     x = factory.variables[0]
-    energy = factory.fixtures['energy']
+    energy = factory.fixtures["energy"]
     zero = np.zeros_like(energy, np.float32)
 
     def make_result(data):
@@ -411,7 +421,7 @@ def ndsweep(factory, plot=None, labels=None, tags=None, silent=False):
     -------
     :class:`~pybinding.NDSweep`
     """
-    energy = factory.fixtures['energy']
+    energy = factory.fixtures["energy"]
     variables = factory.variables + (energy,)
     zero = np.zeros_like(energy, np.float32)
 

@@ -12,6 +12,7 @@ The :class:`.Solver` may easily be extended with new eigensolver algorithms. All
 required is a function which takes a Hamiltonian matrix and returns the computed
 eigenvalues and eigenvectors. See :class:`._SolverPythonImpl` for example.
 """
+
 import time
 import math
 
@@ -22,7 +23,7 @@ from . import results
 from .model import Model
 from .system import System
 
-__all__ = ['Solver', 'arpack', 'feast', 'lapack']
+__all__ = ["Solver", "arpack", "feast", "lapack"]
 
 
 class Solver:
@@ -33,6 +34,7 @@ class Solver:
     and :func:`.feast`. Those functions will set up their specific solver strategy and
     return a properly configured :class:`.Solver` object.
     """
+
     def __init__(self, impl: _cpp.Solver):
         self.impl = impl
 
@@ -121,7 +123,7 @@ class Solver:
             return results.Eigenvalues(self.eigenvalues)
         else:
             site_idx = self.system.find_nearest(position=map_probability_at)
-            probability = abs(self.eigenvectors[site_idx, :])**2
+            probability = abs(self.eigenvectors[site_idx, :]) ** 2
 
             # sum probabilities of degenerate states
             for idx in self.find_degenerate_states(self.eigenvalues):
@@ -181,7 +183,7 @@ class Solver:
         -------
         :class:`~pybinding.Series`
         """
-        if hasattr(self.impl, 'calc_dos'):
+        if hasattr(self.impl, "calc_dos"):
             dos = self.impl.calc_dos(energies, broadening)
         else:
             scale = 1 / (broadening * math.sqrt(2 * math.pi))
@@ -224,7 +226,7 @@ class Solver:
         -------
         :class:`~pybinding.Series`
         """
-        if hasattr(self.impl, 'calc_ldos'):
+        if hasattr(self.impl, "calc_ldos"):
             ldos = self.impl.calc_ldos(energies, broadening, position, sublattice)
         else:
             delta = self.eigenvalues[:, np.newaxis] - energies
@@ -235,15 +237,18 @@ class Solver:
             ham_idx = self.system.to_hamiltonian_indices(sys_idx)
 
             def calc_single(index):
-                psi2 = np.abs(self.eigenvectors[index])**2
+                psi2 = np.abs(self.eigenvectors[index]) ** 2
                 return scale * np.sum(psi2[:, np.newaxis] * gaussian, axis=0)
 
             ldos = np.array([calc_single(i) for i in ham_idx]).T
             if reduce:
                 ldos = np.sum(ldos, axis=1)
 
-        return results.Series(energies, ldos.squeeze(), labels=dict(variable="E (eV)", data="LDOS",
-                                                                    columns="orbitals"))
+        return results.Series(
+            energies,
+            ldos.squeeze(),
+            labels=dict(variable="E (eV)", data="LDOS", columns="orbitals"),
+        )
 
     def calc_spatial_ldos(self, energy, broadening):
         r"""Calculate the spatial local density of states at the given energy
@@ -267,12 +272,12 @@ class Solver:
         -------
         :class:`~pybinding.StructureMap`
         """
-        if hasattr(self.impl, 'calc_spatial_ldos'):
+        if hasattr(self.impl, "calc_spatial_ldos"):
             ldos = self.impl.calc_spatial_ldos(energy, broadening)
         else:
             scale = 1 / (broadening * math.sqrt(2 * math.pi))
-            gaussian = np.exp(-0.5 * (self.eigenvalues - energy)**2 / broadening**2)
-            psi2 = np.abs(self.eigenvectors)**2
+            gaussian = np.exp(-0.5 * (self.eigenvalues - energy) ** 2 / broadening**2)
+            psi2 = np.abs(self.eigenvectors) ** 2
             ldos = scale * np.sum(psi2 * gaussian, axis=1)
 
         return self.system.with_data(ldos)
@@ -338,6 +343,7 @@ class _SolverPythonImpl:
 
     This is intended to make use of scipy's LAPACK and ARPACK solvers.
     """
+
     def __init__(self, solve_func, model, **kwargs):
         self.solve_func = solve_func
         self._model = model
@@ -345,12 +351,12 @@ class _SolverPythonImpl:
         self.kwargs = kwargs
         self.vals = np.empty(0)
         self.vecs = np.empty(0)
-        self.compute_time = .0
+        self.compute_time = 0.0
 
     def clear(self):
         self.vals = np.empty(0)
         self.vecs = np.empty(0)
-        self.compute_time = .0
+        self.compute_time = 0.0
 
     @property
     def model(self):
@@ -390,6 +396,7 @@ class _SolverPythonImpl:
 
     def report(self, _=False):
         from .utils.time import pretty_duration
+
         return "Converged in " + pretty_duration(self.compute_time)
 
 
@@ -412,8 +419,10 @@ def lapack(model, **kwargs):
     -------
     :class:`~pybinding.solver.Solver`
     """
+
     def solver_func(hamiltonian, **kw):
         from scipy.linalg import eigh
+
         return eigh(hamiltonian.toarray(), **kw)
 
     return Solver(_SolverPythonImpl(solver_func, model, **kwargs))
@@ -445,6 +454,7 @@ def arpack(model, k, sigma=0, **kwargs):
     :class:`~pybinding.solver.Solver`
     """
     from scipy.sparse.linalg import eigsh
+
     if sigma == 0:
         # eigsh can cause problems when sigma is exactly zero
         sigma = np.finfo(model.hamiltonian.dtype).eps
@@ -481,8 +491,11 @@ def feast(model, energy_range, initial_size_guess, recycle_subspace=False, is_ve
     """
     try:
         # noinspection PyUnresolvedReferences
-        return Solver(_cpp.FEAST(model, energy_range, initial_size_guess,
-                                 recycle_subspace, is_verbose))
+        return Solver(
+            _cpp.FEAST(model, energy_range, initial_size_guess, recycle_subspace, is_verbose)
+        )
     except AttributeError:
-        raise Exception("The module was compiled without the FEAST solver.\n"
-                        "Use a different solver or recompile the module with FEAST.")
+        raise Exception(
+            "The module was compiled without the FEAST solver.\n"
+            "Use a different solver or recompile the module with FEAST."
+        )

@@ -85,7 +85,7 @@ void kpm_spmv_diagonal(idx_t start, idx_t end, SparseMatrixX<scalar_t> const& ma
 
  Equivalent to: y = matrix * x - y
  */
-#if SIMDPP_USE_NULL // generic version
+#if !CPB_USE_SIMD || SIMDPP_USE_NULL // generic version (no SIMD or null SIMD)
 
 template<class scalar_t> CPB_ALWAYS_INLINE
 void kpm_spmv(idx_t start, idx_t end, num::EllMatrix<scalar_t> const& matrix,
@@ -180,7 +180,7 @@ void kpm_spmv(idx_t start, idx_t end, num::EllMatrix<scalar_t> const& matrix,
     }
 }
 
-#endif // SIMDPP_USE_NULL
+#endif // !CPB_USE_SIMD || SIMDPP_USE_NULL
 
 /**
  KPM-specialized sparse matrix-vector multiplication (ELLPACK, diagonal)
@@ -190,7 +190,7 @@ void kpm_spmv(idx_t start, idx_t end, num::EllMatrix<scalar_t> const& matrix,
    m2 = x^2
    m3 = dot(x, y)
  */
-#if SIMDPP_USE_NULL // generic version
+#if !CPB_USE_SIMD || SIMDPP_USE_NULL // generic version (no SIMD or null SIMD)
 
 template<class scalar_t> CPB_ALWAYS_INLINE
 void kpm_spmv_diagonal(idx_t start, idx_t end, num::EllMatrix<scalar_t> const& matrix,
@@ -322,5 +322,5 @@ void kpm_spmv_diagonal(idx_t start, idx_t end, num::EllMatrix<scalar_t> const& m
     simd::store_u(m3.data(), simd::load_u<simd_register_t>(m3.data()) + m3_vec);
 }
 
-#endif // SIMDPP_USE_NULL
+#endif // !CPB_USE_SIMD || SIMDPP_USE_NULL
 }} // namespace cpb::compute

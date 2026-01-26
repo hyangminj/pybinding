@@ -3,6 +3,7 @@
 The kernel polynomial method (KPM) can be used to approximate various functions by expanding them
 in a series of Chebyshev polynomials.
 """
+
 import warnings
 
 import numpy as np
@@ -15,8 +16,15 @@ from .system import System
 from .utils.time import timed
 from .support.deprecated import LoudDeprecationWarning
 
-__all__ = ['KPM', 'kpm', 'kpm_cuda', 'SpatialLDOS',
-           'jackson_kernel', 'lorentz_kernel', 'dirichlet_kernel']
+__all__ = [
+    "KPM",
+    "kpm",
+    "kpm_cuda",
+    "SpatialLDOS",
+    "jackson_kernel",
+    "lorentz_kernel",
+    "dirichlet_kernel",
+]
 
 
 class SpatialLDOS:
@@ -58,8 +66,11 @@ class SpatialLDOS:
         :class:`.Series`
         """
         idx = self.structure.find_nearest(position, sublattice)
-        return results.Series(self.energy, self.data[:, idx],
-                              labels=dict(variable="E (eV)", data="LDOS", columns="orbitals"))
+        return results.Series(
+            self.energy,
+            self.data[:, idx],
+            labels=dict(variable="E (eV)", data="LDOS", columns="orbitals"),
+        )
 
 
 class KPM:
@@ -197,8 +208,11 @@ class KPM:
         :class:`~pybinding.Series`
         """
         ldos = self.impl.calc_ldos(energy, broadening, position, sublattice, reduce)
-        return results.Series(energy, ldos.squeeze(), labels=dict(variable="E (eV)", data="LDOS",
-                                                                  columns="orbitals"))
+        return results.Series(
+            energy,
+            ldos.squeeze(),
+            labels=dict(variable="E (eV)", data="LDOS", columns="orbitals"),
+        )
 
     def calc_spatial_ldos(self, energy, broadening, shape, sublattice=""):
         """Calculate the LDOS as a function of energy and space (in the area of the given shape)
@@ -274,8 +288,16 @@ class KPM:
         """
         return self.impl.deferred_ldos(energy, broadening, position, sublattice)
 
-    def calc_conductivity(self, chemical_potential, broadening, temperature,
-                          direction="xx", volume=1.0, num_random=1, num_points=1000):
+    def calc_conductivity(
+        self,
+        chemical_potential,
+        broadening,
+        temperature,
+        direction="xx",
+        volume=1.0,
+        num_random=1,
+        num_points=1000,
+    ):
         """Calculate Kubo-Bastin electrical conductivity as a function of chemical potential
 
         The return value is in units of the conductance quantum (e^2 / hbar) not taking into
@@ -309,17 +331,27 @@ class KPM:
         -------
         :class:`~pybinding.Series`
         """
-        data = self.impl.calc_conductivity(chemical_potential, broadening, temperature,
-                                           direction, num_random, num_points)
+        data = self.impl.calc_conductivity(
+            chemical_potential,
+            broadening,
+            temperature,
+            direction,
+            num_random,
+            num_points,
+        )
         if volume != 1.0:
             data /= volume
-        return results.Series(chemical_potential, data,
-                              labels=dict(variable=r"$\mu$ (eV)", data="$\sigma (e^2/h)$"))
+        return results.Series(
+            chemical_potential,
+            data,
+            labels=dict(variable=r"$\mu$ (eV)", data="$\sigma (e^2/h)$"),
+        )
 
 
 class _ComputeProgressReporter:
     def __init__(self):
         from .utils.progressbar import ProgressBar
+
         self.pbar = ProgressBar(0)
 
     def __call__(self, delta, total):
@@ -336,7 +368,14 @@ class _ComputeProgressReporter:
             self.pbar += delta
 
 
-def kpm(model, energy_range=None, kernel="default", num_threads="auto", silent=False, **kwargs):
+def kpm(
+    model,
+    energy_range=None,
+    kernel="default",
+    num_threads="auto",
+    silent=False,
+    **kwargs,
+):
     """The default CPU implementation of the Kernel Polynomial Method
 
     This implementation works on any system and is well optimized.
@@ -400,8 +439,10 @@ def kpm_cuda(model, energy_range=None, kernel="default", **kwargs):
         # noinspection PyUnresolvedReferences
         return KPM(_cpp.kpm_cuda(model, energy_range or (0, 0), **kwargs))
     except AttributeError:
-        raise Exception("The module was compiled without CUDA support.\n"
-                        "Use a different KPM implementation or recompile the module with CUDA.")
+        raise Exception(
+            "The module was compiled without CUDA support.\n"
+            "Use a different KPM implementation or recompile the module with CUDA."
+        )
 
 
 def jackson_kernel():
@@ -459,6 +500,7 @@ class _PythonImpl:
     def stats(self):
         class AttrDict(dict):
             """Allows dict items to be retrieved as attributes: d["item"] == d.item"""
+
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.__dict__ = self
@@ -470,14 +512,17 @@ class _PythonImpl:
 
     def _scaling_factors(self):
         """Compute the energy bounds of the model and return the appropriate KPM scaling factors"""
+
         def find_bounds():
             if self.energy_range[0] != self.energy_range[1]:
                 return self.energy_range
 
             from scipy.sparse.linalg import eigsh
+
             h = self.model.hamiltonian
-            self.energy_range = [eigsh(h, which=x, k=1, tol=2e-3, return_eigenvectors=False)[0]
-                                 for x in ("SA", "LA")]
+            self.energy_range = [
+                eigsh(h, which=x, k=1, tol=2e-3, return_eigenvectors=False)[0] for x in ("SA", "LA")
+            ]
             return self.energy_range
 
         with timed() as self._stats["bounds_time"]:
@@ -513,8 +558,11 @@ class _PythonImpl:
         self._stats["num_moments"] = num_moments
         self._stats["nnz"] = h2.nnz * num_moments / 2
         self._stats["vector_memory"] = r0.nbytes + r1.nbytes
-        self._stats["matrix_memory"] = (h2.data.nbytes + h2.indices.nbytes + h2.indptr.nbytes
-                                        if isinstance(h2, scipy.sparse.csr_matrix) else 0)
+        self._stats["matrix_memory"] = (
+            h2.data.nbytes + h2.indices.nbytes + h2.indptr.nbytes
+            if isinstance(h2, scipy.sparse.csr_matrix)
+            else 0
+        )
         return moments
 
     @staticmethod
@@ -530,8 +578,12 @@ class _PythonImpl:
         scaled_energy = (energy - b) / a
         ns = np.arange(moments.size)
         k = 2 / (a * np.pi)
-        return np.array([k / np.sqrt(1 - w**2) * np.sum(moments.real * np.cos(ns * np.arccos(w)))
-                         for w in scaled_energy])
+        return np.array(
+            [
+                k / np.sqrt(1 - w**2) * np.sum(moments.real * np.cos(ns * np.arccos(w)))
+                for w in scaled_energy
+            ]
+        )
 
     def _ldos(self, index, energy, broadening):
         """Calculate the LDOS at the given Hamiltonian index"""
@@ -565,13 +617,15 @@ class _PythonImpl:
         stats.update({k: with_suffix(stats[k]) for k in ("num_moments", "eps")})
         stats.update({k: pretty_duration(v) for k, v in stats.items() if "_time" in k})
 
-        fmt = " ".join([
-            "{energy_min:.2f}, {energy_max:.2f} [{bounds_time}]",
-            "[{rescale_time}]",
-            "{num_moments} @ {eps}eps [{moments_time}]",
-            "[{reconstruct_time}]",
-            "| {total_time}"
-        ])
+        fmt = " ".join(
+            [
+                "{energy_min:.2f}, {energy_max:.2f} [{bounds_time}]",
+                "[{rescale_time}]",
+                "{num_moments} @ {eps}eps [{moments_time}]",
+                "[{reconstruct_time}]",
+                "| {total_time}",
+            ]
+        )
         return fmt.format_map(stats)
 
 

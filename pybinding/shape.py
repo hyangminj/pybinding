@@ -1,4 +1,5 @@
 """System shape and symmetry"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -6,9 +7,17 @@ from . import _cpp
 from . import pltutils
 from .utils import with_defaults
 
-__all__ = ['FreeformShape', 'Polygon', 'CompositeShape',
-           'circle', 'line', 'primitive', 'rectangle', 'regular_polygon',
-           'translational_symmetry']
+__all__ = [
+    "FreeformShape",
+    "Polygon",
+    "CompositeShape",
+    "circle",
+    "line",
+    "primitive",
+    "rectangle",
+    "regular_polygon",
+    "translational_symmetry",
+]
 
 
 def _plot_freeform_shape(vertices, contains, resolution=(1000, 1000), **kwargs):
@@ -25,8 +34,10 @@ def _plot_freeform_shape(vertices, contains, resolution=(1000, 1000), **kwargs):
         raise RuntimeError("This method only works for 2D shapes.")
 
     x, y, *_ = zip(*vertices)
-    xx, yy = np.meshgrid(np.linspace(min(x), max(x), resolution[0], dtype=np.float32),
-                         np.linspace(min(y), max(y), resolution[1], dtype=np.float32))
+    xx, yy = np.meshgrid(
+        np.linspace(min(x), max(x), resolution[0], dtype=np.float32),
+        np.linspace(min(y), max(y), resolution[1], dtype=np.float32),
+    )
     area = contains(xx.flat, yy.flat, np.zeros_like(xx.flat))
     area.shape = xx.shape
     area = np.ma.masked_array(area, np.logical_not(area))
@@ -35,8 +46,11 @@ def _plot_freeform_shape(vertices, contains, resolution=(1000, 1000), **kwargs):
     if "color" in kwargs:
         kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm([1], [kwargs.pop("color")])
 
-    im = plt.imshow(area, extent=(min(x), max(x), min(y), max(y)),
-                    **with_defaults(kwargs, cmap="gray", alpha=0.15, interpolation="bicubic"))
+    im = plt.imshow(
+        area,
+        extent=(min(x), max(x), min(y), max(y)),
+        **with_defaults(kwargs, cmap="gray", alpha=0.15, interpolation="bicubic"),
+    )
 
     plt.axis("scaled")
     plt.xlabel("x (nm)")
@@ -49,6 +63,7 @@ def _plot_freeform_shape(vertices, contains, resolution=(1000, 1000), **kwargs):
 
 class _CompositionMixin:
     """Provides logical and arithmetic operators to form composite shapes"""
+
     def __and__(self, other):
         return CompositeShape(self, other, np.logical_and)
 
@@ -75,10 +90,20 @@ class Line(_cpp.Line):
     a, b : Union[float, array_like]
         Start and end points.
     """
+
     def __init__(self, a, b):
-        a, b = map(np.array, (a, b))
-        a.resize(2)
-        b.resize(2)
+        # Convert to arrays and ensure size 2 (NumPy 2.0 compatible)
+        # Pad with zeros if the input is 1D (for 1D lattices)
+        def ensure_size_2(arr):
+            arr = np.atleast_1d(np.asarray(arr))
+            if arr.size < 2:
+                result = np.zeros(2, dtype=arr.dtype)
+                result[: arr.size] = arr
+                return result
+            return arr[:2]
+
+        a = ensure_size_2(a)
+        b = ensure_size_2(b)
         super().__init__(a, b)
         self.a = a
         self.b = b
@@ -95,7 +120,7 @@ class Line(_cpp.Line):
         **kwargs
             Forwarded to :func:`matplotlib.pyplot.plot`.
         """
-        plt.plot(*zip(self.a, self.b), **with_defaults(kwargs, color='black', lw=1.6))
+        plt.plot(*zip(self.a, self.b), **with_defaults(kwargs, color="black", lw=1.6))
 
 
 class Polygon(_cpp.Polygon, _CompositionMixin):
@@ -106,6 +131,7 @@ class Polygon(_cpp.Polygon, _CompositionMixin):
     vertices : List[array_like]
         Must be defined in clockwise or counterclockwise order.
     """
+
     def __init__(self, vertices):
         if len(vertices) < 3:
             raise RuntimeError("A polygon must have at least 3 sides")
@@ -114,7 +140,7 @@ class Polygon(_cpp.Polygon, _CompositionMixin):
     def with_offset(self, vector):
         """Return a copy that's offset by the given vector"""
         v = np.zeros(3)
-        v[:len(vector)] = vector
+        v[: len(vector)] = vector
         return Polygon([v0 + v for v0 in self.vertices])
 
     def plot(self, **kwargs):
@@ -126,7 +152,11 @@ class Polygon(_cpp.Polygon, _CompositionMixin):
             Forwarded to :func:`matplotlib.pyplot.plot`.
         """
         x, y, _ = zip(*self.vertices)
-        plt.plot(np.append(x, x[0]), np.append(y, y[0]), **with_defaults(kwargs, color='black'))
+        plt.plot(
+            np.append(x, x[0]),
+            np.append(y, y[0]),
+            **with_defaults(kwargs, color="black"),
+        )
         plt.axis("scaled")
         plt.xlabel("x (nm)")
         plt.ylabel("y (nm)")
@@ -149,6 +179,7 @@ class FreeformShape(_cpp.FreeformShape, _CompositionMixin):
     center : array_like
         The position of the center of the bounding box.
     """
+
     def __init__(self, contains, width, center=(0, 0, 0)):
         super().__init__(contains, width, center)
         self.width = np.atleast_1d(width)
@@ -156,11 +187,13 @@ class FreeformShape(_cpp.FreeformShape, _CompositionMixin):
 
     def with_offset(self, vector):
         """Return a copy that's offset by the given vector"""
+
         def contains(x, y, z):
             r0 = [x, y, z]
-            r = [v0 - v for v0, v in zip(r0, vector)] + r0[len(vector):]
+            r = [v0 - v for v0, v in zip(r0, vector)] + r0[len(vector) :]
             return self.contains(*r)
-        return FreeformShape(contains, self.width, self.center[:len(vector)] + vector)
+
+        return FreeformShape(contains, self.width, self.center[: len(vector)] + vector)
 
     def plot(self, resolution=(1000, 1000), **kwargs):
         """Plot a lightly shaded silhouette of the freeform shape
@@ -179,17 +212,18 @@ class FreeformShape(_cpp.FreeformShape, _CompositionMixin):
 
 class CompositeShape(_cpp.Shape, _CompositionMixin):
     """A composition of 2 shapes using some operator (and, or, xor...)
-    
-    This shape is usually not created directly but present the result of 
+
+    This shape is usually not created directly but present the result of
     applying logical or arithmetic operators on other shapes.
-    
+
     Parameters
     ----------
     shape1, shape2 : _cpp.Shape
         The shapes which shall be composed.
     op : Callable
-        A logical operator (and, or, xor...) to use for the composition. 
+        A logical operator (and, or, xor...) to use for the composition.
     """
+
     def __init__(self, shape1, shape2, op):
         from scipy.spatial import ConvexHull
 
@@ -200,19 +234,22 @@ class CompositeShape(_cpp.Shape, _CompositionMixin):
         hull = ConvexHull(np.array(shape1.vertices + shape2.vertices)[:, :2])
         vertices = hull.points[hull.vertices]
 
-        super().__init__(vertices, lambda x, y, z: op(shape1.contains(x, y, z),
-                                                      shape2.contains(x, y, z)))
+        super().__init__(
+            vertices,
+            lambda x, y, z: op(shape1.contains(x, y, z), shape2.contains(x, y, z)),
+        )
 
     def with_offset(self, vector):
         """Return a copy that's offset by the given vector"""
+
         def contains(x, y, z):
             r0 = [x, y, z]
-            r = [v0 - v for v0, v in zip(r0, vector)] + r0[len(vector):]
+            r = [v0 - v for v0, v in zip(r0, vector)] + r0[len(vector) :]
             return self.contains(*r)
 
         shape = CompositeShape.__new__(CompositeShape)
         v = np.zeros(3)
-        v[:len(vector)] = vector
+        v[: len(vector)] = vector
         vertices = [v0 + v for v0 in self.vertices]
         super(CompositeShape, shape).__init__(vertices, contains)
         return shape
@@ -296,6 +333,7 @@ def regular_polygon(num_sides, radius, angle=0):
     :class:`~pybinding.Polygon`
     """
     from math import pi, sin, cos
+
     angles = [angle + 2 * n * pi / num_sides for n in range(num_sides)]
     return Polygon([(radius * sin(a), radius * cos(a)) for a in angles])
 
@@ -312,9 +350,10 @@ def circle(radius, center=(0, 0)):
     -------
     :class:`~pybinding.FreeformShape`
     """
+
     def contains(x, y, z):
         x0, y0 = center
-        return np.sqrt((x - x0)**2 + (y - y0)**2) < radius
+        return np.sqrt((x - x0) ** 2 + (y - y0) ** 2) < radius
 
     return FreeformShape(contains, [2 * radius] * 2, center)
 
@@ -332,6 +371,7 @@ def translational_symmetry(a1=True, a2=True, a3=True):
         * True -> Translation length is automatically set to the unit cell length.
         * float value -> Manually set the translation length in nanometers.
     """
+
     def to_cpp_params(value):
         if value is False:
             return -1  # disabled

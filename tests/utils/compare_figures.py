@@ -40,7 +40,7 @@ class CompareFigure:
         self._original_rc = {}
         self._original_units_registry = {}
 
-    def __call__(self, ext='.png', tol=10, remove_text=True, savefig_kwargs=None):
+    def __call__(self, ext=".png", tol=10, remove_text=True, savefig_kwargs=None):
         self.ext = ext
         self.tol = tol
         self.remove_text = remove_text
@@ -54,7 +54,7 @@ class CompareFigure:
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", matplotlib.MatplotlibDeprecationWarning)
             matplotlib.style.use(style)
-        mpl.use('Agg')
+        mpl.use("Agg")
 
     def _exit_style(self):
         with warnings.catch_warnings():
@@ -83,15 +83,16 @@ class CompareFigure:
                 actual_file.parent.mkdir(parents=True)
             plt.savefig(actual_filename, **self.savefig_kwargs)
 
-            baseline = path_from_fixture(self.request, prefix='baseline_plots', ext=self.ext)
+            baseline = path_from_fixture(self.request, prefix="baseline_plots", ext=self.ext)
             baseline_filename = str(baseline)
 
             if baseline.exists():
                 try:
-                    data = compare_images(baseline_filename, actual_filename,
-                                          self.tol, in_decorator=True)
+                    data = compare_images(
+                        baseline_filename, actual_filename, self.tol, in_decorator=True
+                    )
                 except ValueError as exc:
-                    if 'could not be broadcast' not in str(exc):
+                    if "could not be broadcast" not in str(exc):
                         raise
                     else:
                         data = dict(actual=actual_filename, expected=baseline_filename)
@@ -119,10 +120,10 @@ class CompareFigure:
                     os.remove(filename)
 
         if fail_data:
-            shutil.copyfile(fail_data['actual'], reportfile("_actual"))
-            shutil.copyfile(fail_data['expected'], reportfile("_baseline"))
-            if 'diff' in fail_data:
-                shutil.copyfile(fail_data['diff'], reportfile("_diff"))
+            shutil.copyfile(fail_data["actual"], reportfile("_actual"))
+            shutil.copyfile(fail_data["expected"], reportfile("_baseline"))
+            if "diff" in fail_data:
+                shutil.copyfile(fail_data["diff"], reportfile("_diff"))
         else:
             delete("_actual")
             delete("_baseline")

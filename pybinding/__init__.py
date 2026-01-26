@@ -1,8 +1,18 @@
-from .__about__ import (__author__, __copyright__, __doc__, __email__, __license__, __summary__,
-                        __title__, __url__, __version__)
+from .__about__ import (
+    __author__,
+    __copyright__,
+    __doc__,
+    __email__,
+    __license__,
+    __summary__,
+    __title__,
+    __url__,
+    __version__,
+)
 
 import os
 import sys
+
 if sys.platform.startswith("linux"):
     # When the _pybinding C++ extension is compiled with MKL, it requires specific
     # dlopen flags on Linux: RTLD_GLOBAL. This will not play nice with some scipy
@@ -14,20 +24,23 @@ if sys.platform.startswith("linux"):
     # is the best solution at the moment.
     import scipy.sparse.linalg
     import scipy.spatial
+
     sys.setdlopenflags(sys.getdlopenflags() | os.RTLD_GLOBAL)
 
 try:
     import _pybinding as _cpp
 except ImportError as e:
     if "GLIBCXX" in str(e):
-        msg = ("The version of libstdc++.so found in this environment is older than "
-               "the GCC which was used to compile pybinding. If you're using conda, "
-               "its internal libstdc++ may be masking the system library. Switching "
-               "to the conda-forge channel and removing the outdated library should "
-               "fix the issue. You can use the following commands:                \n"
-               "  conda config --add channels conda-forge                         \n"
-               "  conda update --all                                              \n"
-               "  conda uninstall libgcc                                            ")
+        msg = (
+            "The version of libstdc++.so found in this environment is older than "
+            "the GCC which was used to compile pybinding. If you're using conda, "
+            "its internal libstdc++ may be masking the system library. Switching "
+            "to the conda-forge channel and removing the outdated library should "
+            "fix the issue. You can use the following commands:                \n"
+            "  conda config --add channels conda-forge                         \n"
+            "  conda update --all                                              \n"
+            "  conda uninstall libgcc                                            "
+        )
         raise ImportError(msg).with_traceback(e.__traceback__)
     else:
         raise
@@ -41,7 +54,7 @@ from .results import *
 from .chebyshev import *
 from .parallel import parallel_for, parallelize
 
-from . import (constants, greens, parallel, pltutils, results, solver, system, utils)
+from . import constants, greens, parallel, pltutils, results, solver, system, utils
 
 
 def tests(options=None, plugins=None):
@@ -64,15 +77,15 @@ def tests(options=None, plugins=None):
         args = args.split()
     module_path = pathlib.Path(__file__).parent
 
-    if (module_path / 'tests').exists():
+    if (module_path / "tests").exists():
         # tests are inside installed package -> use read-only mode
-        args.append('--failpath=' + os.getcwd() + '/failed')
-        with cd(module_path), pltutils.backend('Agg'):
-            args += ['-c', str(module_path / 'tests/local.cfg'), str(module_path)]
+        args.append("--failpath=" + os.getcwd() + "/failed")
+        with cd(module_path), pltutils.backend("Agg"):
+            args += ["-c", str(module_path / "tests/local.cfg"), str(module_path)]
             error_code = pytest.main(args, plugins)
     else:
         # tests are in dev environment -> use development mode
-        with cd(module_path.parent), pltutils.backend('Agg'):
+        with cd(module_path.parent), pltutils.backend("Agg"):
             error_code = pytest.main(args, plugins)
 
     return error_code or None

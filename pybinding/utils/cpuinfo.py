@@ -11,8 +11,10 @@ def cpu_info():
         try:
             from cpuinfo import get_cpu_info
         except ImportError:
+
             def get_cpu_info():
                 return {}
+
         _cached_info = get_cpu_info()
     return _cached_info
 
@@ -52,13 +54,13 @@ def summary():
         return "py-cpuinfo is not installed"
 
     info = info.copy()
-    hz_raw, scale = info['hz_advertised_raw']
-    info['ghz'] = hz_raw * 10**(scale - 9)
-    info['physical'] = physical_core_count()
-    info['virtual'] = virtual_core_count()
-    info['simd'] = _cpp.simd_info()
+    hz_raw, scale = info["hz_advertised_raw"]
+    info["ghz"] = hz_raw * 10 ** (scale - 9)
+    info["physical"] = physical_core_count()
+    info["virtual"] = virtual_core_count()
+    info["simd"] = _cpp.simd_info()
     return "{brand}\n{physical}/{virtual} cores @ {ghz:.2g} GHz with {simd}".format_map(info)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     print(summary())

@@ -17,7 +17,7 @@ def test_sweep(baseline, plot_if_fails):
         model = pb.Model(
             graphene.monolayer(),
             graphene.hexagon_ac(side_width=15),
-            pb.constant_potential(v)
+            pb.constant_potential(v),
         )
 
         kpm = pb.kpm(model, kernel=pb.lorentz_kernel())
@@ -28,7 +28,7 @@ def test_sweep(baseline, plot_if_fails):
     result = pb.parallel.sweep(factory, labels=labels)
 
     expected = baseline(result)
-    plot_if_fails(result, expected, 'plot')
+    plot_if_fails(result, expected, "plot")
     assert pytest.fuzzy_equal(result, expected, rtol=1e-3, atol=1e-6)
 
 
@@ -39,7 +39,7 @@ def test_ndsweep(baseline):
             graphene.monolayer(),
             graphene.hexagon_ac(side_width=15),
             pb.constant_potential(v1),
-            pb.constant_potential(v2)
+            pb.constant_potential(v2),
         )
 
         kpm = pb.kpm(model, kernel=pb.lorentz_kernel())

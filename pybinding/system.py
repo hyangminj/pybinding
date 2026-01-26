@@ -1,4 +1,5 @@
 """Structural information and utilities"""
+
 import functools
 import itertools
 
@@ -15,12 +16,19 @@ from .support.fuzzy_set import FuzzySet
 from .support.structure import AbstractSites, Sites
 from .results import Structure, StructureMap
 
-__all__ = ['Sites', 'System', 'plot_hoppings', 'plot_periodic_boundaries', 'plot_sites',
-           'structure_plot_properties']
+__all__ = [
+    "Sites",
+    "System",
+    "plot_hoppings",
+    "plot_periodic_boundaries",
+    "plot_sites",
+    "structure_plot_properties",
+]
 
 
 class _CppSites(AbstractSites):
     """Tailored to the internal C++ compressed sublattice representation"""
+
     def __init__(self, impl: _cpp.System):
         self._positions = impl.positions
         self._cs = impl.compressed_sublattices
@@ -51,6 +59,7 @@ class System(Structure):
 
     Stores positions, sublattice and hopping IDs for all lattice sites.
     """
+
     def __init__(self, impl: _cpp.System, lattice=None):
         super().__init__(_CppSites(impl), impl.hopping_blocks, impl.boundaries)
         self.impl = impl
@@ -74,7 +83,7 @@ class System(Structure):
     def hamiltonian_size(self) -> int:
         """The size of the Hamiltonian matrix constructed from this system
 
-        Takes into account the number of orbitals/spins at each lattice site 
+        Takes into account the number of orbitals/spins at each lattice site
         which makes `hamiltonian_size` >= `num_sites`.
         """
         return self.impl.hamiltonian_size
@@ -106,9 +115,9 @@ class System(Structure):
 
     def to_hamiltonian_indices(self, system_idx):
         """Translate the given system index into its corresponding Hamiltonian indices
-        
+
         System indices are always scalars and index a single (x, y, z) site position.
-        For single-orbital models there is a 1:1 correspondence between system and 
+        For single-orbital models there is a 1:1 correspondence between system and
         Hamiltonian indices. However, for multi-orbital models the Hamiltonian indices
         are 1D arrays with a size corresponding to the number of orbitals on the target
         site.
@@ -156,7 +165,7 @@ class System(Structure):
         return np.concatenate(reduced_data)
 
 
-def structure_plot_properties(axes='xyz', site=None, hopping=None, boundary=None, **kwargs):
+def structure_plot_properties(axes="xyz", site=None, hopping=None, boundary=None, **kwargs):
     """Process structure plot properties
 
     Parameters
@@ -182,19 +191,22 @@ def structure_plot_properties(axes='xyz', site=None, hopping=None, boundary=None
     site = kwargs.pop("sites", site)
     hopping = kwargs.pop("hoppings", hopping)
 
-    invalid_args = kwargs.keys() - {'add_margin'}
+    invalid_args = kwargs.keys() - {"add_margin"}
     if invalid_args:
-        raise RuntimeError("Invalid arguments: {}".format(','.join(invalid_args)))
+        raise RuntimeError("Invalid arguments: {}".format(",".join(invalid_args)))
 
-    props = {'axes': axes, 'add_margin': kwargs.get('add_margin', True),
-             'site': with_defaults(site, axes=axes),
-             'hopping': with_defaults(hopping, axes=axes)}
-    props['boundary'] = with_defaults(boundary, props['hopping'], color='#f40a0c')
+    props = {
+        "axes": axes,
+        "add_margin": kwargs.get("add_margin", True),
+        "site": with_defaults(site, axes=axes),
+        "hopping": with_defaults(hopping, axes=axes),
+    }
+    props["boundary"] = with_defaults(boundary, props["hopping"], color="#f40a0c")
     return props
 
 
-def decorate_structure_plot(axes='xy', add_margin=True, **_):
-    plt.gca().set_aspect('equal')
+def decorate_structure_plot(axes="xy", add_margin=True, **_):
+    plt.gca().set_aspect("equal")
     plt.gca().autoscale_view()
     plt.xlabel("{} (nm)".format(axes[0]))
     plt.ylabel("{} (nm)".format(axes[1]))
@@ -216,8 +228,16 @@ def _data_units_to_points(ax, value):
     return value * (length / data_range)
 
 
-def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
-               cmap='auto', axes='xyz', **kwargs):
+def plot_sites(
+    positions,
+    data,
+    radius=0.025,
+    offset=(0, 0, 0),
+    blend=1.0,
+    cmap="auto",
+    axes="xyz",
+    **kwargs,
+):
     """Plot circles at lattice site `positions` with colors based on `data`
 
     Parameters
@@ -254,20 +274,38 @@ def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
     if np.all(radius == 0):
         return
 
-    kwargs = with_defaults(kwargs, alpha=0.97, lw=0.2, edgecolor=str(1-blend))
+    kwargs = with_defaults(kwargs, alpha=0.97, lw=0.2, edgecolor=str(1 - blend))
 
-    if cmap == 'auto':
-        cmap = ['#377ec8', '#ff7f00', '#41ae76', '#e41a1c',
-                '#984ea3', '#ffff00', '#a65628', '#f781bf']
-    elif cmap == 'pairs':
-        cmap = ['#a6cee3', '#1f78b4', '#b2df8a', '#33a02c', '#fb9a99', '#e31a1c',
-                '#fdbf6f', '#ff7f00', '#cab2d6', '#6a3d9a']
+    if cmap == "auto":
+        cmap = [
+            "#377ec8",
+            "#ff7f00",
+            "#41ae76",
+            "#e41a1c",
+            "#984ea3",
+            "#ffff00",
+            "#a65628",
+            "#f781bf",
+        ]
+    elif cmap == "pairs":
+        cmap = [
+            "#a6cee3",
+            "#1f78b4",
+            "#b2df8a",
+            "#33a02c",
+            "#fb9a99",
+            "#e31a1c",
+            "#fdbf6f",
+            "#ff7f00",
+            "#cab2d6",
+            "#6a3d9a",
+        ]
 
     # create colormap from discrete colors
     if isinstance(cmap, (list, tuple)):
-        kwargs['cmap'], kwargs['norm'] = pltutils.direct_cmap_norm(data, cmap, blend)
+        kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm(data, cmap, blend)
     else:
-        kwargs['cmap'] = cmap
+        kwargs["cmap"] = cmap
 
     rotate = functools.partial(rotate_axes, axes=axes)
     positions, offset = map(rotate, (positions, offset))
@@ -276,7 +314,7 @@ def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
     points = np.array(positions[:2]).T + offset[:2]
 
     ax = plt.gca()
-    if ax.name != '3d':
+    if ax.name != "3d":
         # sort based on z position to get proper 2D z-order
         z = positions[2]
         if len(np.unique(z)) > 1:
@@ -286,6 +324,7 @@ def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
             points, data = points[idx], data[idx]
 
         from pybinding.support.collections import CircleCollection
+
         col = CircleCollection(radius, offsets=points, transOffset=ax.transData, **kwargs)
         col.set_array(data)
 
@@ -295,21 +334,22 @@ def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
             """Rescale the circumference line width and radius based on data units"""
             scale = _data_units_to_points(active_ax, 0.005)  # [nm] reference for 1 screen point
             line_scale = np.clip(scale, 0.2, 1.1)  # don't make the line too thin or thick
-            col.set_linewidth(line_scale * kwargs['lw'])
+            col.set_linewidth(line_scale * kwargs["lw"])
             if np.isscalar(radius):
                 scale = _data_units_to_points(active_ax, 0.01)  # [nm]
                 radius_scale = np.clip(2 - scale, 0.85, 1.3)
                 col.radius = radius_scale * np.atleast_1d(radius)
 
         dynamic_scale(ax)
-        ax.callbacks.connect('xlim_changed', dynamic_scale)
-        ax.callbacks.connect('ylim_changed', dynamic_scale)
+        ax.callbacks.connect("xlim_changed", dynamic_scale)
+        ax.callbacks.connect("ylim_changed", dynamic_scale)
     else:
         from pybinding.support.collections import Circle3DCollection
-        col = Circle3DCollection(radius/8, offsets=points, transOffset=ax.transData, **kwargs)
+
+        col = Circle3DCollection(radius / 8, offsets=points, transOffset=ax.transData, **kwargs)
         col.set_array(data)
         z = positions[2] + offset[2]
-        col.set_3d_properties(z, 'z')
+        col.set_3d_properties(z, "z")
 
         had_data = ax.has_data()
         ax.add_collection(col)
@@ -319,8 +359,18 @@ def plot_sites(positions, data, radius=0.025, offset=(0, 0, 0), blend=1.0,
     return col
 
 
-def plot_hoppings(positions, hoppings, width=1.0, offset=(0, 0, 0), blend=1.0, color='#666666',
-                  axes='xyz', boundary=(), draw_only=(), **kwargs):
+def plot_hoppings(
+    positions,
+    hoppings,
+    width=1.0,
+    offset=(0, 0, 0),
+    blend=1.0,
+    color="#666666",
+    axes="xyz",
+    boundary=(),
+    draw_only=(),
+    **kwargs,
+):
     """Plot lines between lattice sites at `positions` based on the `hoppings` matrix
 
     Parameters
@@ -362,15 +412,23 @@ def plot_hoppings(positions, hoppings, width=1.0, offset=(0, 0, 0), blend=1.0, c
 
     if "cmap" in kwargs:
         cmap = kwargs["cmap"]
-        if cmap == 'auto':
-            cmap = ['#666666', '#1b9e77', '#e6ab02', '#7570b3', '#e7298a', '#66a61e', '#a6761d']
+        if cmap == "auto":
+            cmap = [
+                "#666666",
+                "#1b9e77",
+                "#e6ab02",
+                "#7570b3",
+                "#e7298a",
+                "#66a61e",
+                "#a6761d",
+            ]
 
         # create colormap from discrete colors
         if isinstance(cmap, (list, tuple)):
             unique_hop_ids = np.arange(num_unique_hoppings)
-            kwargs['cmap'], kwargs['norm'] = pltutils.direct_cmap_norm(unique_hop_ids, cmap, blend)
+            kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm(unique_hop_ids, cmap, blend)
         else:
-            kwargs['cmap'] = cmap
+            kwargs["cmap"] = cmap
     else:
         color = pltutils.blend_colors(color, "white", blend)
 
@@ -387,7 +445,7 @@ def plot_hoppings(positions, hoppings, width=1.0, offset=(0, 0, 0), blend=1.0, c
         hoppings.row = hoppings.row[keep]
 
     ax = plt.gca()
-    ndims = 3 if ax.name == '3d' else 2
+    ndims = 3 if ax.name == "3d" else 2
     pos = np.array(positions[:ndims]).T + np.array(offset[:ndims])
 
     if not boundary:
@@ -413,8 +471,8 @@ def plot_hoppings(positions, hoppings, width=1.0, offset=(0, 0, 0), blend=1.0, c
             col.set_linewidth(scale * width)
 
         dynamic_scale(ax)
-        ax.callbacks.connect('xlim_changed', dynamic_scale)
-        ax.callbacks.connect('ylim_changed', dynamic_scale)
+        ax.callbacks.connect("xlim_changed", dynamic_scale)
+        ax.callbacks.connect("ylim_changed", dynamic_scale)
     else:
         from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
@@ -486,8 +544,13 @@ def plot_periodic_boundaries(positions, hoppings, boundaries, data, num_periods=
             if (shift + sign * boundary.shift) not in prev_shift_set:
                 continue  # skip existing
 
-            plot_hoppings(positions, boundary.hoppings.tocoo(), offset=shift,
-                          boundary=(sign, boundary.shift), **{"blend": blend, **props["boundary"]})
+            plot_hoppings(
+                positions,
+                boundary.hoppings.tocoo(),
+                offset=shift,
+                boundary=(sign, boundary.shift),
+                **{"blend": blend, **props["boundary"]},
+            )
 
 
 def plot_site_indices(system):

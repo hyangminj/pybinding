@@ -4,6 +4,7 @@ The only way to create leads is using the :meth:`.Model.attach_lead` method.
 The classes represented here are the final product of that process, listed
 in :attr:`.Model.leads`.
 """
+
 import numpy as np
 import matplotlib.pyplot as plt
 from math import pi
@@ -11,10 +12,15 @@ from scipy.sparse import csr_matrix
 
 from . import _cpp
 from . import pltutils, results
-from .system import (System, plot_sites, plot_hoppings, structure_plot_properties,
-                     decorate_structure_plot)
+from .system import (
+    System,
+    plot_sites,
+    plot_hoppings,
+    structure_plot_properties,
+    decorate_structure_plot,
+)
 
-__all__ = ['Lead']
+__all__ = ["Lead"]
 
 
 def _center(pos, shift):
@@ -30,6 +36,7 @@ class Lead:
     Leads can only be created using :meth:`.Model.attach_lead`
     and accessed using :attr:`.Model.leads`.
     """
+
     def __init__(self, impl: _cpp.Lead, index, lattice):
         self.impl = impl
         self.index = index
@@ -101,23 +108,30 @@ class Lead:
         outer_hoppings = boundary.hoppings.tocoo()
 
         props = structure_plot_properties(**kwargs)
-        props['site'].setdefault('radius', self.system.lattice.site_radius_for_plot())
+        props["site"].setdefault("radius", self.system.lattice.site_radius_for_plot())
 
         blend_gradient = np.linspace(0.5, 0.1, lead_length)
         for i, blend in enumerate(blend_gradient):
             offset = i * boundary.shift
-            plot_sites(pos, sub, offset=offset, blend=blend, **props['site'])
-            plot_hoppings(pos, inner_hoppings, offset=offset, blend=blend, **props['hopping'])
-            plot_hoppings(pos, outer_hoppings, offset=offset - boundary.shift, blend=blend,
-                          boundary=(1, boundary.shift), **props['boundary'])
+            plot_sites(pos, sub, offset=offset, blend=blend, **props["site"])
+            plot_hoppings(pos, inner_hoppings, offset=offset, blend=blend, **props["hopping"])
+            plot_hoppings(
+                pos,
+                outer_hoppings,
+                offset=offset - boundary.shift,
+                blend=blend,
+                boundary=(1, boundary.shift),
+                **props["boundary"],
+            )
 
         label_pos = _center(pos, lead_length * boundary.shift * 1.5)
         pltutils.annotate_box("lead {}".format(self.index), label_pos, bbox=dict(alpha=0.7))
 
         decorate_structure_plot(**props)
 
-    def plot_contact(self, line_width=1.6, arrow_length=0.5,
-                     shade_width=0.3, shade_color='#d40a0c'):
+    def plot_contact(
+        self, line_width=1.6, arrow_length=0.5, shade_width=0.3, shade_color="#d40a0c"
+    ):
         """Plot the shape and direction of the lead contact region
 
         Parameters
@@ -141,7 +155,7 @@ class Lead:
 
         def plot_contact_line():
             # Not using plt.plot() because it would reset axis limits
-            plt.gca().add_patch(plt.Polygon([a, b], color='black', lw=line_width))
+            plt.gca().add_patch(plt.Polygon([a, b], color="black", lw=line_width))
 
         def rescale_lattice_vector(vec):
             line_length = np.linalg.norm(a - b)
@@ -150,15 +164,23 @@ class Lead:
 
         def plot_arrow(xy, vec, spec, head_width=0.08, head_length=0.2):
             vnorm = np.linalg.norm(vec)
-            plt.arrow(xy[0], xy[1], *vec, color='black', alpha=0.9, length_includes_head=True,
-                      head_width=vnorm * head_width, head_length=vnorm * head_length)
+            plt.arrow(
+                xy[0],
+                xy[1],
+                *vec,
+                color="black",
+                alpha=0.9,
+                length_includes_head=True,
+                head_width=vnorm * head_width,
+                head_length=vnorm * head_length,
+            )
             label = r"${}a_{}$".format("-" if spec.sign < 0 else "", spec.axis + 1)
-            pltutils.annotate_box(label, xy + vec / 5, fontsize='large',
-                                  bbox=dict(lw=0, alpha=0.6))
+            pltutils.annotate_box(label, xy + vec / 5, fontsize="large", bbox=dict(lw=0, alpha=0.6))
 
         def plot_polygon(w):
-            plt.gca().add_patch(plt.Polygon([a - w, a + w, b + w, b - w],
-                                            color=shade_color, alpha=0.25, lw=0))
+            plt.gca().add_patch(
+                plt.Polygon([a - w, a + w, b + w, b - w], color=shade_color, alpha=0.25, lw=0)
+            )
 
         plot_contact_line()
         v = rescale_lattice_vector(vectors[lead_spec.axis] * lead_spec.sign)

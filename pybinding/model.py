@@ -1,4 +1,5 @@
 """Main model definition interface"""
+
 import numpy as np
 from scipy.sparse import csr_matrix
 
@@ -8,7 +9,7 @@ from .system import System, decorate_structure_plot
 from .lattice import Lattice
 from .leads import Leads
 
-__all__ = ['Model']
+__all__ = ["Model"]
 
 
 class Model(_cpp.Model):
@@ -32,6 +33,7 @@ class Model(_cpp.Model):
         * Any number of modifiers can be added. Adding the same modifier more than once
           is allowed: this will usually multiply the modifier's effect.
     """
+
     def __init__(self, lattice, *args):
         super().__init__(lattice.impl)
 
@@ -50,8 +52,10 @@ class Model(_cpp.Model):
         """
         for arg in args:
             if arg is None:
-                raise RuntimeError("`None` was passed to Model: check that all "
-                                   "modifier functions have return values")
+                raise RuntimeError(
+                    "`None` was passed to Model: check that all "
+                    "modifier functions have return values"
+                )
             try:
                 self.add(*arg)
             except TypeError:
@@ -103,6 +107,7 @@ class Model(_cpp.Model):
             Finalized system which can be used with kwant compute functions.
         """
         from .support.kwant import tokwant
+
         return tokwant(self)
 
     @property
@@ -119,7 +124,7 @@ class Model(_cpp.Model):
     def lattice(self) -> Lattice:
         """:class:`.Lattice` specification"""
         return self._lattice
-    
+
     @property
     def leads(self):
         """List of :class:`.Lead` objects"""
@@ -133,15 +138,19 @@ class Model(_cpp.Model):
     @property
     def modifiers(self) -> list:
         """List of all modifiers applied to this model"""
-        return (self.state_modifiers + self.position_modifiers +
-                self.onsite_modifiers + self.hopping_modifiers)
+        return (
+            self.state_modifiers
+            + self.position_modifiers
+            + self.onsite_modifiers
+            + self.hopping_modifiers
+        )
 
     @property
     def onsite_map(self) -> results.StructureMap:
         """:class:`.StructureMap` of the onsite energy"""
         return self.structure_map(np.real(self.hamiltonian.diagonal()))
 
-    def plot(self, num_periods=1, lead_length=6, axes='xy', **kwargs):
+    def plot(self, num_periods=1, lead_length=6, axes="xy", **kwargs):
         """Plot the structure of the model: sites, hoppings, boundaries and leads
 
         Parameters
@@ -155,7 +164,7 @@ class Model(_cpp.Model):
         **kwargs
             Additional plot arguments as specified in :func:`.structure_plot_properties`.
         """
-        kwargs['add_margin'] = False
+        kwargs["add_margin"] = False
         self.system.plot(num_periods, axes=axes, **kwargs)
         for lead in self.leads:
             lead.plot(lead_length, axes=axes, **kwargs)
