@@ -16,6 +16,7 @@ endif()
 option(PB_WERROR "Make all warnings into errors" OFF)
 option(PB_TESTS "Enable testing" ON)
 option(PB_NATIVE_SIMD "Enable all instruction sets supported by the local machine" ON)
+option(PB_USE_SIMD "Use libsimdpp for SIMD optimizations (disable for C++17 compatibility)" ON)
 option(PB_MKL "Use Intel's Math Kernel Library" OFF)
 option(PB_CUDA "Enable compilation of components written in CUDA" OFF)
 option(PB_USE_CCACHE "Use ccache if available" ON)
@@ -62,17 +63,19 @@ FetchContent_MakeAvailable(fmt)
 
 # libsimdpp - SIMD abstraction library (header-only)
 # Note: v2.1 has C++17 compilation issues with modern GCC (see #140), but master has API changes.
-# CI disables SIMD (PB_NATIVE_SIMD=OFF) as a workaround for cross-platform compatibility.
+# Set PB_USE_SIMD=OFF to disable libsimdpp entirely (recommended for CI builds).
 # Don't use MakeAvailable because libsimdpp's CMakeLists.txt requires CMake < 3.5
-FetchContent_Declare(
-    libsimdpp
-    URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
-    URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
-    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
-FetchContent_GetProperties(libsimdpp)
-if(NOT libsimdpp_POPULATED)
-    FetchContent_Populate(libsimdpp)
+if(PB_USE_SIMD)
+    FetchContent_Declare(
+        libsimdpp
+        URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
+        URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    )
+    FetchContent_GetProperties(libsimdpp)
+    if(NOT libsimdpp_POPULATED)
+        FetchContent_Populate(libsimdpp)
+    endif()
 endif()
 
 # Note: pybind11 is provided by the parent CMakeLists.txt through the Python package
@@ -179,12 +182,18 @@ target_include_directories(cppcore PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-# SIMD library include
-# Use PUBLIC because cppcore headers (like support/simd.hpp) include libsimdpp headers
-# Use BUILD_INTERFACE to avoid CMake error about build directory paths in INTERFACE properties
-target_include_directories(cppcore SYSTEM PUBLIC
-    $<BUILD_INTERFACE:${libsimdpp_SOURCE_DIR}>
-)
+# SIMD library include (only when SIMD is enabled)
+if(PB_USE_SIMD)
+    # Use PUBLIC because cppcore headers (like support/simd.hpp) include libsimdpp headers
+    # Use BUILD_INTERFACE to avoid CMake error about build directory paths in INTERFACE properties
+    target_include_directories(cppcore SYSTEM PUBLIC
+        $<BUILD_INTERFACE:${libsimdpp_SOURCE_DIR}>
+    )
+    target_compile_definitions(cppcore PUBLIC CPB_USE_SIMD=1)
+else()
+    target_compile_definitions(cppcore PUBLIC CPB_USE_SIMD=0)
+    message(STATUS "SIMD support disabled (PB_USE_SIMD=OFF)")
+endif()
 
 # Thread support (must come before target_link_libraries)
 find_package(Threads REQUIRED)

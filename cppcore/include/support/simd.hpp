@@ -1,5 +1,14 @@
 #pragma once
 
+#include "detail/config.hpp"
+#include "detail/macros.hpp"
+#include "support/cppfuture.hpp"
+#include <complex>
+#include <array>
+#include <cstdint>
+
+#if CPB_USE_SIMD
+
 #if defined(__AVX2__)
 # define SIMDPP_ARCH_X86_AVX2
 #elif defined(__AVX__)
@@ -21,13 +30,8 @@
 #endif
 #include <simdpp/simd.h>
 #ifdef _MSC_VER
-# pragma warning(pop) 
+# pragma warning(pop)
 #endif
-
-#include "detail/config.hpp"
-#include "detail/macros.hpp"
-#include "support/cppfuture.hpp"
-#include <complex>
 
 namespace cpb { namespace simd {
 using namespace simdpp;
@@ -442,3 +446,51 @@ Vec load_splat_rc(std::complex<real_t> const* p) {
 }
 
 }} // namespace cpb::simd
+
+#else // !CPB_USE_SIMD
+
+// Scalar fallback when SIMD is disabled
+namespace cpb { namespace simd {
+
+struct basic_traits {
+    static constexpr auto align_bytes = 8;
+    static constexpr auto register_size_bytes = 8;
+};
+
+template<class T>
+struct traits : basic_traits {
+    static constexpr auto size = 1;
+};
+
+template<class scalar_t>
+using array = std::array<scalar_t, 1>;
+
+template<std::size_t bytes>
+inline bool is_aligned(void const*) { return true; }
+
+template<idx_t N>
+struct split_loop_t {
+    static constexpr auto step = N;
+    idx_t start, peel_end, vec_end, end;
+
+    template<class FnScalar, class FnVector>
+    void for_each(FnScalar fn_scalar, FnVector) const {
+        for (auto i = start; i < end; ++i) {
+            fn_scalar(i);
+        }
+    }
+};
+
+template<class scalar_t, idx_t step = 1>
+split_loop_t<step> split_loop(scalar_t const*, idx_t start, idx_t end) {
+    return {start, start, end, end};
+}
+
+struct scope_disable_denormals {
+    scope_disable_denormals() {}
+    ~scope_disable_denormals() {}
+};
+
+}} // namespace cpb::simd
+
+#endif // CPB_USE_SIMD

@@ -66,6 +66,7 @@ class CMakeBuild(build_ext):
             f"-DPB_WERROR={os.environ.get('PB_WERROR', 'OFF')}",
             f"-DPB_TESTS={os.environ.get('PB_TESTS', 'OFF')}",
             f"-DPB_NATIVE_SIMD={os.environ.get('PB_NATIVE_SIMD', 'ON')}",
+            f"-DPB_USE_SIMD={os.environ.get('PB_USE_SIMD', 'ON')}",
             f"-DPB_MKL={os.environ.get('PB_MKL', 'OFF')}",
             f"-DPB_CUDA={os.environ.get('PB_CUDA', 'OFF')}",
         ])
