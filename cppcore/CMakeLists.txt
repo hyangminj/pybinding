@@ -61,13 +61,13 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(fmt)
 
 # libsimdpp - SIMD abstraction library (header-only)
-# Using master branch (post-v2.1) to fix C++17 compilation issues with modern GCC/Clang
-# See: https://github.com/p12tic/libsimdpp/issues/140
+# Note: v2.1 has C++17 compilation issues with modern GCC (see #140), but master has API changes.
+# CI disables SIMD (PB_NATIVE_SIMD=OFF) as a workaround for cross-platform compatibility.
 # Don't use MakeAvailable because libsimdpp's CMakeLists.txt requires CMake < 3.5
-# Using URL download instead of Git to avoid shallow clone issues with specific commits
 FetchContent_Declare(
     libsimdpp
-    URL https://github.com/p12tic/libsimdpp/archive/55860b502f4d3f82faf99817181af0a50996b392.tar.gz
+    URL https://github.com/p12tic/libsimdpp/archive/refs/tags/v2.1.tar.gz
+    URL_HASH SHA256=b0e986b20bef77cd17004dd02db0c1ad9fab9c70d4e99594a9db1ee6a345be93
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_GetProperties(libsimdpp)
