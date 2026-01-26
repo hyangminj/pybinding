@@ -67,7 +67,7 @@ FetchContent_MakeAvailable(fmt)
 # Using URL download instead of Git to avoid shallow clone issues with specific commits
 FetchContent_Declare(
     libsimdpp
-    URL https://github.com/p12tic/libsimdpp/archive/55860b5bab010a0997bb0e4e37a4a171573e34ff.tar.gz
+    URL https://github.com/p12tic/libsimdpp/archive/55860b502f4d3f82faf99817181af0a50996b392.tar.gz
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_GetProperties(libsimdpp)
