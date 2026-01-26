@@ -16,26 +16,32 @@ def _assertdispatch(func):
     * Detects objects which can be used with `pb.save` and `pb.load`
     """
     dispatcher = singledispatch(func)
+    # Track objects being processed to avoid infinite recursion
+    _processing = set()
 
     def wrapper(self, actual, expected, context=None):
         if context is not None:
             self.stack.append(context)
 
-        # Check if the object is a pybinding type that should use pb.save/load
-        # Only consider it "pb savable" if it has __getinitargs__ (pybinding specific)
-        # or if it's a pybinding module object with __getstate__
-        # Note: Python 3.11+ adds __getstate__ to many objects, so we need to be more specific
-        is_pb_savable = (
-            hasattr(actual, "__getinitargs__")
-            or (
-                hasattr(actual, "__getstate__")
-                and hasattr(actual, "__module__")
-                and actual.__module__ is not None
-                and actual.__module__.startswith("pybinding")
-            )
-        )
-        kind = type(pb.save) if is_pb_savable else actual.__class__
-        dispatcher.dispatch(kind)(self, actual, expected)
+        # Use object id to detect recursion
+        obj_id = id(actual)
+        if obj_id in _processing:
+            # Already processing this object, skip to avoid infinite recursion
+            if context is not None and self.stack:
+                self.stack.pop()
+            return
+
+        _processing.add(obj_id)
+        try:
+            # Check if the object is a pybinding type that should use pb.save/load
+            # Only consider it "pb savable" if it has __getinitargs__ (pybinding specific)
+            # Note: Python 3.11+ adds __getstate__ to many objects, so we only use
+            # __getinitargs__ which is specific to pybinding C++ objects
+            is_pb_savable = hasattr(actual, "__getinitargs__")
+            kind = type(pb.save) if is_pb_savable else actual.__class__
+            dispatcher.dispatch(kind)(self, actual, expected)
+        finally:
+            _processing.discard(obj_id)
 
         if context is not None and self.stack:
             self.stack.pop()
