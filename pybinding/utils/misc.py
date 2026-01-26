@@ -95,11 +95,7 @@ def decorator_decorator(decorator_wrapper):
         except IndexError:
             callsig = None
 
-        if (
-            len(args) == 1
-            and not kwargs
-            and (isinstance(args[0], type) or callable(args[0]))
-        ):
+        if len(args) == 1 and not kwargs and (isinstance(args[0], type) or callable(args[0])):
             args[0].callsig = callsig
             return decorator_wrapper()(args[0])
         else:

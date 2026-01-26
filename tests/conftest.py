@@ -19,9 +19,7 @@ def pytest_configure():
 
 
 def pytest_addoption(parser):
-    parser.addoption(
-        "--alwaysplot", action="store_true", help="Plot even for tests which pass."
-    )
+    parser.addoption("--alwaysplot", action="store_true", help="Plot even for tests which pass.")
     parser.addoption(
         "--failpath",
         action="store",
@@ -31,9 +29,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--savebaseline", action="store_true", help="Save a new baseline for all tests."
     )
-    parser.addoption(
-        "--readonly", action="store_true", help="Don't save new baseline data."
-    )
+    parser.addoption("--readonly", action="store_true", help="Don't save new baseline data.")
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -54,9 +50,7 @@ def baseline(request):
     """Return baseline data for this result. If non exist create it."""
 
     def get_expected(result, group=""):
-        file = path_from_fixture(
-            request, prefix="baseline_data", ext=".pbz", override_group=group
-        )
+        file = path_from_fixture(request, prefix="baseline_data", ext=".pbz", override_group=group)
 
         if not request.config.getoption("--savebaseline") and file.exists():
             return pb.load(file)

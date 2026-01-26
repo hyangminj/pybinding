@@ -59,9 +59,7 @@ def summary():
     info["physical"] = physical_core_count()
     info["virtual"] = virtual_core_count()
     info["simd"] = _cpp.simd_info()
-    return "{brand}\n{physical}/{virtual} cores @ {ghz:.2g} GHz with {simd}".format_map(
-        info
-    )
+    return "{brand}\n{physical}/{virtual} cores @ {ghz:.2g} GHz with {simd}".format_map(info)
 
 
 if __name__ == "__main__":

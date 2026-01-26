@@ -66,9 +66,7 @@ def constant_magnetic_field(magnitude):
     magnitude : float
         In units of Tesla.
     """
-    scale = (
-        1e-18  # both the vector potential and coordinates are in [nm] -> scale to [m]
-    )
+    scale = 1e-18  # both the vector potential and coordinates are in [nm] -> scale to [m]
     const = scale * 2 * pi / phi0
 
     @pb.hopping_energy_modifier(is_complex=True)

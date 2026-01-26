@@ -34,14 +34,10 @@ class CallSignature:
         if self.args:
             positional = [func(v) for k, v in self.positional.items()]
         else:
-            positional = [
-                "{}={}".format(k, func(v)) for k, v in self.positional.items()
-            ]
+            positional = ["{}={}".format(k, func(v)) for k, v in self.positional.items()]
 
         args = [func(v) for v in self.args]
-        keywords_only = [
-            "{}={}".format(k, func(v)) for k, v in self.keyword_only.items()
-        ]
+        keywords_only = ["{}={}".format(k, func(v)) for k, v in self.keyword_only.items()]
         kwargs = ["{}={}".format(k, func(v)) for k, v in self.kwargs.items()]
 
         return ", ".join(positional + args + keywords_only + kwargs)

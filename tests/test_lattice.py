@@ -99,24 +99,16 @@ def test_add_multiorbital_sublattice():
     assert lat.nsub == 1
 
     lat.add_one_sublattice("B", [0, 0], [1, 2, 3])
-    assert pytest.fuzzy_equal(
-        lat.sublattices["B"].energy, [[1, 0, 0], [0, 2, 0], [0, 0, 3]]
-    )
+    assert pytest.fuzzy_equal(lat.sublattices["B"].energy, [[1, 0, 0], [0, 2, 0], [0, 0, 3]])
 
     lat.add_one_sublattice("C", [0, 0], [[1, 2, 3], [0, 4, 5], [0, 0, 6]])
-    assert pytest.fuzzy_equal(
-        lat.sublattices["C"].energy, [[1, 2, 3], [2, 4, 5], [3, 5, 6]]
-    )
+    assert pytest.fuzzy_equal(lat.sublattices["C"].energy, [[1, 2, 3], [2, 4, 5], [3, 5, 6]])
 
     lat.add_one_sublattice("D", [0, 0], [[1, 2j, 3], [0, 4, 5j], [0, 0, 6]])
-    assert pytest.fuzzy_equal(
-        lat.sublattices["D"].energy, [[1, 2j, 3], [-2j, 4, 5j], [3, -5j, 6]]
-    )
+    assert pytest.fuzzy_equal(lat.sublattices["D"].energy, [[1, 2j, 3], [-2j, 4, 5j], [3, -5j, 6]])
 
     lat.add_one_sublattice("E", [0, 0], [[1, 2, 3], [2, 4, 5], [3, 5, 6]])
-    assert pytest.fuzzy_equal(
-        lat.sublattices["E"].energy, [[1, 2, 3], [2, 4, 5], [3, 5, 6]]
-    )
+    assert pytest.fuzzy_equal(lat.sublattices["E"].energy, [[1, 2, 3], [2, 4, 5], [3, 5, 6]])
     assert lat.nsub == 5
 
     with pytest.raises(RuntimeError) as excinfo:
@@ -132,20 +124,12 @@ def test_add_multiorbital_sublattice():
     assert "must be a real vector or a square matrix" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
-        lat.add_one_sublattice(
-            "not square", [0, 0], [[1j, 2, 3], [2, 4j, 5], [3, 5, 6j]]
-        )
-    assert "The main diagonal of the onsite hopping term must be real" in str(
-        excinfo.value
-    )
+        lat.add_one_sublattice("not square", [0, 0], [[1j, 2, 3], [2, 4j, 5], [3, 5, 6j]])
+    assert "The main diagonal of the onsite hopping term must be real" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
-        lat.add_one_sublattice(
-            "not Hermitian", [0, 0], [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-        )
-    assert "The onsite hopping matrix must be upper triangular or Hermitian" in str(
-        excinfo.value
-    )
+        lat.add_one_sublattice("not Hermitian", [0, 0], [[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    assert "The onsite hopping matrix must be upper triangular or Hermitian" in str(excinfo.value)
 
 
 def test_add_sublattice_alias(capsys):
@@ -174,9 +158,7 @@ def test_add_sublattice_alias(capsys):
 def test_add_hopping(capsys):
     lat = pb.Lattice([1, 0], [0, 1])
     lat.add_sublattices(("A", [0.0, 0.5]), ("B", [0.5, 0.0]))
-    lat.add_hoppings(
-        ([0, 0], "A", "B", 1), ([1, -1], "A", "B", 1), ([0, -1], "A", "B", 2)
-    )
+    lat.add_hoppings(([0, 0], "A", "B", 1), ([1, -1], "A", "B", 1), ([0, -1], "A", "B", 2))
 
     assert lat.nhop == 2
     assert lat.hoppings["__anonymous__0"].family_id == 0
@@ -230,20 +212,14 @@ def test_add_hopping(capsys):
 def test_add_matrix_hopping():
     lat = pb.Lattice([1, 0], [0, 1])
     lat.add_sublattices(("A", [0.0, 0.5]), ("B", [0.5, 0.0]))
-    lat.add_hoppings(
-        ([0, 0], "A", "B", 1), ([1, -1], "A", "B", 1), ([0, -1], "A", "B", 2)
-    )
+    lat.add_hoppings(([0, 0], "A", "B", 1), ([1, -1], "A", "B", 1), ([0, -1], "A", "B", 2))
     assert lat.nsub == 2
     assert lat.nhop == 2
 
-    lat.add_sublattices(
-        ("A2", [0, 0], [1, 2]), ("B2", [0, 0], [1, 2]), ("C3", [0, 0], [1, 2, 3])
-    )
+    lat.add_sublattices(("A2", [0, 0], [1, 2]), ("B2", [0, 0], [1, 2]), ("C3", [0, 0], [1, 2, 3]))
     assert lat.nsub == 5
 
-    lat.register_hopping_energies(
-        {"t22": [[1, 2], [3, 4]], "t23": [[1, 2, 3], [4, 5, 6]]}
-    )
+    lat.register_hopping_energies({"t22": [[1, 2], [3, 4]], "t23": [[1, 2, 3], [4, 5, 6]]})
     assert lat.nhop == 4
 
     with pytest.raises(RuntimeError) as excinfo:
@@ -263,15 +239,11 @@ def test_add_matrix_hopping():
 
     with pytest.raises(RuntimeError) as excinfo:
         lat.add_one_hopping([0, 0], "B2", "C3", "t22")
-    assert "mismatch: from 'B2' (2) to 'C3' (3) with matrix 't22' (2, 2)" in str(
-        excinfo.value
-    )
+    assert "mismatch: from 'B2' (2) to 'C3' (3) with matrix 't22' (2, 2)" in str(excinfo.value)
 
     with pytest.raises(RuntimeError) as excinfo:
         lat.add_one_hopping([0, 0], "C3", "B2", "t23")
-    assert "mismatch: from 'C3' (3) to 'B2' (2) with matrix 't23' (2, 3)" in str(
-        excinfo.value
-    )
+    assert "mismatch: from 'C3' (3) to 'B2' (2) with matrix 't23' (2, 3)" in str(excinfo.value)
 
 
 def test_builder():

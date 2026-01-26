@@ -114,9 +114,7 @@ class Lead:
         for i, blend in enumerate(blend_gradient):
             offset = i * boundary.shift
             plot_sites(pos, sub, offset=offset, blend=blend, **props["site"])
-            plot_hoppings(
-                pos, inner_hoppings, offset=offset, blend=blend, **props["hopping"]
-            )
+            plot_hoppings(pos, inner_hoppings, offset=offset, blend=blend, **props["hopping"])
             plot_hoppings(
                 pos,
                 outer_hoppings,
@@ -127,9 +125,7 @@ class Lead:
             )
 
         label_pos = _center(pos, lead_length * boundary.shift * 1.5)
-        pltutils.annotate_box(
-            "lead {}".format(self.index), label_pos, bbox=dict(alpha=0.7)
-        )
+        pltutils.annotate_box("lead {}".format(self.index), label_pos, bbox=dict(alpha=0.7))
 
         decorate_structure_plot(**props)
 
@@ -179,15 +175,11 @@ class Lead:
                 head_length=vnorm * head_length,
             )
             label = r"${}a_{}$".format("-" if spec.sign < 0 else "", spec.axis + 1)
-            pltutils.annotate_box(
-                label, xy + vec / 5, fontsize="large", bbox=dict(lw=0, alpha=0.6)
-            )
+            pltutils.annotate_box(label, xy + vec / 5, fontsize="large", bbox=dict(lw=0, alpha=0.6))
 
         def plot_polygon(w):
             plt.gca().add_patch(
-                plt.Polygon(
-                    [a - w, a + w, b + w, b - w], color=shade_color, alpha=0.25, lw=0
-                )
+                plt.Polygon([a - w, a + w, b + w, b - w], color=shade_color, alpha=0.25, lw=0)
             )
 
         plot_contact_line()

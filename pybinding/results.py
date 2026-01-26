@@ -176,10 +176,7 @@ def make_path(k0, k1, *ks, step=0.1):
         num_steps = int(np.linalg.norm(k_end - k_start) // step)
         # k_path.shape == num_steps, k_space_dimensions
         k_path = np.array(
-            [
-                np.linspace(s, e, num_steps, endpoint=False)
-                for s, e in zip(k_start, k_end)
-            ]
+            [np.linspace(s, e, num_steps, endpoint=False) for s, e in zip(k_start, k_end)]
         ).T
         k_paths.append(k_path)
         point_indices.append(point_indices[-1] + num_steps)
@@ -353,9 +350,7 @@ class SpatialMap:
         data = np.empty_like(self.data)
         for i in range(len(data)):
             idx = np.abs(r - r[i]) < sigma
-            data[i] = np.sum(
-                self.data[idx] * np.exp(-0.5 * ((r[i] - r[idx]) / sigma) ** 2)
-            )
+            data[i] = np.sum(self.data[idx] * np.exp(-0.5 * ((r[i] - r[idx]) / sigma) ** 2))
             data[i] /= np.sum(np.exp(-0.5 * ((r[i] - r[idx]) / sigma) ** 2))
 
         self._data = data
@@ -495,9 +490,7 @@ class StructureMap(SpatialMap):
                 return site_radius[1]
 
         props = structure_plot_properties(**kwargs)
-        props["site"] = with_defaults(
-            props["site"], radius=to_radii(self.data), cmap=cmap
-        )
+        props["site"] = with_defaults(props["site"], radius=to_radii(self.data), cmap=cmap)
         collection = plot_sites(self.positions, self.data, **props["site"])
 
         hop = self.hoppings.tocoo()
@@ -729,9 +722,7 @@ class Eigenvalues:
         )
         self._decorate_plot(mark_degenerate, show_indices)
 
-    def plot_heatmap(
-        self, size=(7, 77), mark_degenerate=True, show_indices=False, **kwargs
-    ):
+    def plot_heatmap(self, size=(7, 77), mark_degenerate=True, show_indices=False, **kwargs):
         """Eigenvalues scatter plot with a heatmap indicating probability density
 
         Parameters
@@ -930,19 +921,9 @@ class Sweep:
         -------
         :class:`~pybinding.Sweep`
         """
-        idx_x = (
-            np.logical_and(x[0] <= self.x, self.x <= x[1])
-            if x
-            else np.arange(self.x.size)
-        )
-        idx_y = (
-            np.logical_and(y[0] <= self.y, self.y <= y[1])
-            if y
-            else np.arange(self.y.size)
-        )
-        return self._with_data(
-            self.x[idx_x], self.y[idx_y], self.data[np.ix_(idx_x, idx_y)]
-        )
+        idx_x = np.logical_and(x[0] <= self.x, self.x <= x[1]) if x else np.arange(self.x.size)
+        idx_y = np.logical_and(y[0] <= self.y, self.y <= y[1]) if y else np.arange(self.y.size)
+        return self._with_data(self.x[idx_x], self.y[idx_y], self.data[np.ix_(idx_x, idx_y)])
 
     def mirrored(self, axis="x"):
         """Return a copy with data mirrored in around specified axis

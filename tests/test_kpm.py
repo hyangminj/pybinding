@@ -39,9 +39,7 @@ def test_ldos(params, baseline, plot_if_fails):
     model = pb.Model(*params)
 
     kernel = pb.lorentz_kernel()
-    strategies = [
-        pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations
-    ]
+    strategies = [pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations]
 
     energy = np.linspace(0, 2, 25)
     results = [
@@ -91,9 +89,7 @@ def test_moments(model, plot_if_fails):
     with pytest.raises(RuntimeError) as excinfo:
         kpm = pb.kpm(pb.Model(graphene.monolayer()))
         kpm.moments(10, [1j, 2j])
-    assert "Hamiltonian is real, but the given argument 'alpha' is complex" in str(
-        excinfo.value
-    )
+    assert "Hamiltonian is real, but the given argument 'alpha' is complex" in str(excinfo.value)
 
 
 def test_kpm_multiple_indices(model):
@@ -128,14 +124,10 @@ def test_kpm_reuse():
 
 def test_ldos_sublattice():
     """LDOS for A and B sublattices should be antisymmetric for graphene with a mass term"""
-    model = pb.Model(
-        graphene.monolayer(), graphene.hexagon_ac(10), graphene.mass_term(1)
-    )
+    model = pb.Model(graphene.monolayer(), graphene.hexagon_ac(10), graphene.mass_term(1))
     kpm = pb.kpm(model, silent=True)
 
-    a, b = (
-        kpm.calc_ldos(np.linspace(-5, 5, 50), 0.1, [0, 0], sub) for sub in ("A", "B")
-    )
+    a, b = (kpm.calc_ldos(np.linspace(-5, 5, 50), 0.1, [0, 0], sub) for sub in ("A", "B"))
     assert pytest.fuzzy_equal(a.data, b.data[::-1], rtol=1e-3, atol=1e-6)
 
 
@@ -175,9 +167,7 @@ def test_dos(params, baseline, plot_if_fails):
     model = pb.Model(*params)
 
     kernel = pb.lorentz_kernel()
-    strategies = [
-        pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations
-    ]
+    strategies = [pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations]
 
     energy = np.linspace(0, 2, 25)
     results = [kpm.calc_dos(energy, broadening=0.15) for kpm in strategies]
@@ -214,8 +204,7 @@ def test_conductivity(params, baseline, plot_if_fails):
 
     kernel = pb.lorentz_kernel()
     strategies = [
-        pb.kpm(model, energy_range=[-9, 9], kernel=kernel, silent=True, **c)
-        for c in configurations
+        pb.kpm(model, energy_range=[-9, 9], kernel=kernel, silent=True, **c) for c in configurations
     ]
 
     energy = np.linspace(-2, 2, 25)

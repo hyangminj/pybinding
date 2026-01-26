@@ -461,9 +461,7 @@ def arpack(model, k, sigma=0, **kwargs):
     return Solver(_SolverPythonImpl(eigsh, model, k=k, sigma=sigma, **kwargs))
 
 
-def feast(
-    model, energy_range, initial_size_guess, recycle_subspace=False, is_verbose=False
-):
+def feast(model, energy_range, initial_size_guess, recycle_subspace=False, is_verbose=False):
     """FEAST :class:`.Solver` implementation for sparse matrices
 
     This solver is only available if the C++ extension module was compiled with FEAST.
@@ -494,9 +492,7 @@ def feast(
     try:
         # noinspection PyUnresolvedReferences
         return Solver(
-            _cpp.FEAST(
-                model, energy_range, initial_size_guess, recycle_subspace, is_verbose
-            )
+            _cpp.FEAST(model, energy_range, initial_size_guess, recycle_subspace, is_verbose)
         )
     except AttributeError:
         raise Exception(

@@ -38,9 +38,7 @@ def monolayer(nearest_neighbors=1, onsite=(0, 0), **kwargs):
         }
     )
 
-    lat.add_hoppings(
-        ([0, 0], "A", "B", "t"), ([1, -1], "A", "B", "t"), ([0, -1], "A", "B", "t")
-    )
+    lat.add_hoppings(([0, 0], "A", "B", "t"), ([1, -1], "A", "B", "t"), ([0, -1], "A", "B", "t"))
 
     if nearest_neighbors >= 2:
         lat.add_hoppings(
@@ -81,9 +79,7 @@ def monolayer_alt(onsite=(0, 0)):
 
     lat.add_sublattices(("A", [0, 0], onsite[0]), ("B", [0, a_cc], onsite[1]))
 
-    lat.add_hoppings(
-        ([0, 0], "A", "B", t), ([0, 1], "A", "B", t), ([-1, 0], "A", "B", t)
-    )
+    lat.add_hoppings(([0, 0], "A", "B", t), ([0, 1], "A", "B", t), ([-1, 0], "A", "B", t))
 
     lat.min_neighbors = 2
     return lat
@@ -101,9 +97,7 @@ def monolayer_4atom(onsite=(0, 0)):
 
     lat = pb.Lattice(a1=[a, 0], a2=[0, 3 * a_cc])
 
-    lat.add_sublattices(
-        ("A", [0, -a_cc / 2], onsite[0]), ("B", [0, a_cc / 2], onsite[1])
-    )
+    lat.add_sublattices(("A", [0, -a_cc / 2], onsite[0]), ("B", [0, a_cc / 2], onsite[1]))
 
     lat.add_aliases(("A2", "A", [a / 2, a_cc]), ("B2", "B", [a / 2, 2 * a_cc]))
 
@@ -152,9 +146,7 @@ def bilayer(gamma3=False, gamma4=False, onsite=(0, 0, 0, 0)):
         ("B2", [0, 3 * a_cc / 2, -c0], onsite[3]),
     )
 
-    lat.register_hopping_energies(
-        {"gamma0": t, "gamma1": -0.4, "gamma3": -0.3, "gamma4": -0.04}
-    )
+    lat.register_hopping_energies({"gamma0": t, "gamma1": -0.4, "gamma3": -0.3, "gamma4": -0.04})
 
     lat.add_hoppings(
         # layer 1

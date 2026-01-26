@@ -54,9 +54,7 @@ else:
             energy[np.logical_and(x >= 0, x <= 1)] -= v
             return energy
 
-        model = pb.Model(
-            square_lattice(d=1, t=1), pb.rectangle(length, width), potential_well
-        )
+        model = pb.Model(square_lattice(d=1, t=1), pb.rectangle(length, width), potential_well)
         model.attach_lead(-1, pb.line([0, -width / 2 - 0.1], [0, width / 2]))
         model.attach_lead(+1, pb.line([0, -width / 2 - 0.1], [0, width / 2]))
         return model
@@ -68,9 +66,7 @@ else:
 
         system = make_wire_with_flat_potential()
         kwant_result = np.array([calc_transmission(system, energy, v) for v in vs])
-        pb_result = np.array(
-            [calc_transmission(pb_model(v).tokwant(), energy) for v in vs]
-        )
+        pb_result = np.array([calc_transmission(pb_model(v).tokwant(), energy) for v in vs])
 
         assert pytest.fuzzy_equal(pb_result, kwant_result)
 
@@ -86,9 +82,7 @@ else:
         model = pb.Model(lattice, pb.rectangle(1, 1))
         kwant_sys = model.tokwant()
 
-        matrix, to_norb, from_norb = kwant_sys.hamiltonian_submatrix(
-            sparse=True, return_norb=True
-        )
+        matrix, to_norb, from_norb = kwant_sys.hamiltonian_submatrix(sparse=True, return_norb=True)
         assert matrix.shape == model.hamiltonian.shape
         assert to_norb.size == model.system.num_sites
         assert from_norb.size == model.system.num_sites

@@ -80,9 +80,7 @@ def test_type_errors():
 
     with pytest.raises(TypeError) as excinfo:
         build_model(
-            pb.site_position_modifier(
-                lambda x: (np.ones_like(x, dtype=np.complex128),) * 3
-            )
+            pb.site_position_modifier(lambda x: (np.ones_like(x, dtype=np.complex128),) * 3)
         )
     assert "'complex128', but expected same kind as 'float32'" in str(excinfo.value)
 
@@ -95,42 +93,28 @@ def test_cast():
         return np.ones_like(energy, dtype=np.float32)
 
     for dtype in dtypes:
-        assert (
-            float32_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
-        )
+        assert float32_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
 
     @pb.hopping_energy_modifier
     def float64_out(energy):
         return np.ones_like(energy, dtype=np.float64)
 
     for dtype in dtypes:
-        assert (
-            float64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
-        )
+        assert float64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
 
     @pb.hopping_energy_modifier
     def complex64_out(energy):
         return np.ones_like(energy, dtype=np.complex64)
 
-    for dtype, result in zip(
-        dtypes, [np.complex64, np.complex64, np.complex64, np.complex128]
-    ):
-        assert (
-            complex64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype
-            == result
-        )
+    for dtype, result in zip(dtypes, [np.complex64, np.complex64, np.complex64, np.complex128]):
+        assert complex64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == result
 
     @pb.hopping_energy_modifier
     def complex128_out(energy):
         return np.ones_like(energy, dtype=np.complex128)
 
-    for dtype, result in zip(
-        dtypes, [np.complex128, np.complex128, np.complex64, np.complex128]
-    ):
-        assert (
-            complex128_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype
-            == result
-        )
+    for dtype, result in zip(dtypes, [np.complex128, np.complex128, np.complex64, np.complex128]):
+        assert complex128_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == result
 
 
 def test_site_state():
@@ -251,9 +235,7 @@ def test_site_position():
 
     model = build_model(check_args, shift)
     assert pytest.fuzzy_equal(model.system.x, [1, 1])
-    assert pytest.fuzzy_equal(
-        model.system.y, [1 - graphene.a_cc / 2, 1 + graphene.a_cc / 2]
-    )
+    assert pytest.fuzzy_equal(model.system.y, [1 - graphene.a_cc / 2, 1 + graphene.a_cc / 2])
     assert pytest.fuzzy_equal(model.system.z, [1, 1])
 
 
@@ -383,9 +365,7 @@ def test_hopping_generator():
     def onsite_offset(energy):
         return energy + 3 * graphene.t_nn
 
-    model = pb.Model(
-        graphene.monolayer(), next_nearest, onsite_offset, graphene.hexagon_ac(1)
-    )
+    model = pb.Model(graphene.monolayer(), next_nearest, onsite_offset, graphene.hexagon_ac(1))
     expected = pb.Model(graphene.monolayer(2), graphene.hexagon_ac(1))
     assert pytest.fuzzy_equal(model.hamiltonian, expected.hamiltonian)
 

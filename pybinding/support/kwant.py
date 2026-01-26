@@ -63,9 +63,7 @@ class KwantFiniteSystem(FiniteSystem):
         params=None,
     ):
         if to_sites is not None or from_sites is not None:
-            raise RuntimeError(
-                "The `to_sites` and `from_sites` arguments are not supported"
-            )
+            raise RuntimeError("The `to_sites` and `from_sites` arguments are not supported")
         _warn_if_not_empty(args, params)
 
         ham = self.pb_model.hamiltonian

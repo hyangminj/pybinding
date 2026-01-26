@@ -165,9 +165,7 @@ class System(Structure):
         return np.concatenate(reduced_data)
 
 
-def structure_plot_properties(
-    axes="xyz", site=None, hopping=None, boundary=None, **kwargs
-):
+def structure_plot_properties(axes="xyz", site=None, hopping=None, boundary=None, **kwargs):
     """Process structure plot properties
 
     Parameters
@@ -327,21 +325,15 @@ def plot_sites(
 
         from pybinding.support.collections import CircleCollection
 
-        col = CircleCollection(
-            radius, offsets=points, transOffset=ax.transData, **kwargs
-        )
+        col = CircleCollection(radius, offsets=points, transOffset=ax.transData, **kwargs)
         col.set_array(data)
 
         ax.add_collection(col)
 
         def dynamic_scale(active_ax):
             """Rescale the circumference line width and radius based on data units"""
-            scale = _data_units_to_points(
-                active_ax, 0.005
-            )  # [nm] reference for 1 screen point
-            line_scale = np.clip(
-                scale, 0.2, 1.1
-            )  # don't make the line too thin or thick
+            scale = _data_units_to_points(active_ax, 0.005)  # [nm] reference for 1 screen point
+            line_scale = np.clip(scale, 0.2, 1.1)  # don't make the line too thin or thick
             col.set_linewidth(line_scale * kwargs["lw"])
             if np.isscalar(radius):
                 scale = _data_units_to_points(active_ax, 0.01)  # [nm]
@@ -354,9 +346,7 @@ def plot_sites(
     else:
         from pybinding.support.collections import Circle3DCollection
 
-        col = Circle3DCollection(
-            radius / 8, offsets=points, transOffset=ax.transData, **kwargs
-        )
+        col = Circle3DCollection(radius / 8, offsets=points, transOffset=ax.transData, **kwargs)
         col.set_array(data)
         z = positions[2] + offset[2]
         col.set_3d_properties(z, "z")
@@ -436,9 +426,7 @@ def plot_hoppings(
         # create colormap from discrete colors
         if isinstance(cmap, (list, tuple)):
             unique_hop_ids = np.arange(num_unique_hoppings)
-            kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm(
-                unique_hop_ids, cmap, blend
-            )
+            kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm(unique_hop_ids, cmap, blend)
         else:
             kwargs["cmap"] = cmap
     else:
@@ -478,9 +466,7 @@ def plot_hoppings(
 
         def dynamic_scale(active_ax):
             """Rescale the line width based on data units"""
-            scale = _data_units_to_points(
-                active_ax, 0.005
-            )  # [nm] reference for 1 screen point
+            scale = _data_units_to_points(active_ax, 0.005)  # [nm] reference for 1 screen point
             scale = np.clip(scale, 0.6, 1.2)  # don't make the line too thin or thick
             col.set_linewidth(scale * width)
 
@@ -509,18 +495,14 @@ def _make_shift_set(boundaries, level):
         return FuzzySet([np.zeros(3)])
 
     base_shifts = [b.shift for b in boundaries] + [-b.shift for b in boundaries]
-    all_shifts = (
-        sum(c) for c in itertools.combinations_with_replacement(base_shifts, level)
-    )
+    all_shifts = (sum(c) for c in itertools.combinations_with_replacement(base_shifts, level))
 
     blacklist = sum(_make_shift_set(boundaries, l) for l in range(level))
     exclusive_shifts = (s for s in all_shifts if s not in blacklist)
     return FuzzySet(exclusive_shifts)
 
 
-def plot_periodic_boundaries(
-    positions, hoppings, boundaries, data, num_periods=1, **kwargs
-):
+def plot_periodic_boundaries(positions, hoppings, boundaries, data, num_periods=1, **kwargs):
     """Plot the periodic boundaries of a system
 
     Parameters
@@ -550,17 +532,13 @@ def plot_periodic_boundaries(
         shift_set = _make_shift_set(boundaries, level)
         for s in shift_set:
             plot_sites(positions, data, offset=s, **{"blend": blend, **props["site"]})
-            plot_hoppings(
-                positions, hoppings, offset=s, **{"blend": blend, **props["hopping"]}
-            )
+            plot_hoppings(positions, hoppings, offset=s, **{"blend": blend, **props["hopping"]})
 
     # periodic boundary hoppings
     for level, blend in enumerate(blend_gradient, start=1):
         shift_set = _make_shift_set(boundaries, level)
         prev_shift_set = _make_shift_set(boundaries, level - 1)
-        boundary_set = itertools.product(
-            shift_set + prev_shift_set, (1, -1), boundaries
-        )
+        boundary_set = itertools.product(shift_set + prev_shift_set, (1, -1), boundaries)
 
         for shift, sign, boundary in boundary_set:
             if (shift + sign * boundary.shift) not in prev_shift_set:
@@ -596,9 +574,7 @@ def plot_hopping_values(system):
     pos = system.xyz[:, :2]
 
     def get_energy(hopping_id):
-        inv_name_map = {
-            hop.family_id: name for name, hop in system.lattice.hoppings.items()
-        }
+        inv_name_map = {hop.family_id: name for name, hop in system.lattice.hoppings.items()}
         return inv_name_map[hopping_id]
 
     coo = system.hoppings.tocoo()
@@ -608,9 +584,5 @@ def plot_hopping_values(system):
     for boundary in system.boundaries:
         coo = boundary.hoppings.tocoo()
         for i, j, k in zip(coo.row, coo.col, coo.data):
-            pltutils.annotate_box(
-                get_energy(k), (pos[i] + pos[j] + boundary.shift[:2]) / 2
-            )
-            pltutils.annotate_box(
-                get_energy(k), (pos[i] + pos[j] - boundary.shift[:2]) / 2
-            )
+            pltutils.annotate_box(get_energy(k), (pos[i] + pos[j] + boundary.shift[:2]) / 2)
+            pltutils.annotate_box(get_energy(k), (pos[i] + pos[j] - boundary.shift[:2]) / 2)

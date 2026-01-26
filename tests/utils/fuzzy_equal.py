@@ -21,9 +21,7 @@ def _assertdispatch(func):
         if context is not None:
             self.stack.append(context)
 
-        is_pb_savable = any(
-            hasattr(actual, s) for s in ["__getstate__", "__getinitargs__"]
-        )
+        is_pb_savable = any(hasattr(actual, s) for s in ["__getstate__", "__getinitargs__"])
         kind = type(pb.save) if is_pb_savable else actual.__class__
         dispatcher.dispatch(kind)(self, actual, expected)
 
@@ -85,10 +83,7 @@ def _assert_fuzzy_equal(actual, expected, rtol, atol):
                 " actual:   {}".format(a),
                 " expected: {}".format(b),
                 " indices:  {}".format(
-                    [
-                        idx[0] if idx.size == 1 else list(idx)
-                        for idx in np.argwhere(notclose)
-                    ]
+                    [idx[0] if idx.size == 1 else list(idx) for idx in np.argwhere(notclose)]
                 ),
                 " abs diff: {}".format(abs(a - b)),
                 " rel diff: {}".format(abs(a - b) / abs(b)),
@@ -142,16 +137,12 @@ class FuzzyEqual:
     @_assert.register(csr_matrix)
     def _(self, actual, expected):
         for s in ["shape", "data", "indices", "indptr"]:
-            self._assert(
-                getattr(actual, s), getattr(expected, s), context=".{}".format(s)
-            )
+            self._assert(getattr(actual, s), getattr(expected, s), context=".{}".format(s))
 
     @_assert.register(coo_matrix)
     def _(self, actual, expected):
         for s in ["shape", "data", "row", "col"]:
-            self._assert(
-                getattr(actual, s), getattr(expected, s), context=".{}".format(s)
-            )
+            self._assert(getattr(actual, s), getattr(expected, s), context=".{}".format(s))
 
     @_assert.register(tuple)
     @_assert.register(list)
@@ -174,10 +165,6 @@ class FuzzyEqual:
 
     @_assert.register(type(pb.save))
     def _(self, actual, expected):
-        specials = [
-            s for s in ["__getstate__", "__getinitargs__"] if hasattr(actual, s)
-        ]
+        specials = [s for s in ["__getstate__", "__getinitargs__"] if hasattr(actual, s)]
         for s in specials:
-            self._assert(
-                getattr(actual, s)(), getattr(expected, s)(), context="{}()".format(s)
-            )
+            self._assert(getattr(actual, s)(), getattr(expected, s)(), context="{}()".format(s))

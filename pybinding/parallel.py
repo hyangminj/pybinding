@@ -27,9 +27,7 @@ def _sequential_for(sequence, produce, retire):
         retire(deferred, idx)
 
 
-def _parallel_for(
-    sequence, produce, retire, num_threads=num_cores, queue_size=num_cores
-):
+def _parallel_for(sequence, produce, retire, num_threads=num_cores, queue_size=num_cores):
     """Multi-threaded for loop
 
     See the implementation of `_sequential_for` to get the basic idea. This parallel
@@ -132,9 +130,7 @@ class Config:
     @staticmethod
     def make_filename(callsig):
         invalid_chars = " /.,"
-        filename = "".join(
-            "{:.1s}{}".format(k, v) for k, v in callsig.named_args.items()
-        )
+        filename = "".join("{:.1s}{}".format(k, v) for k, v in callsig.named_args.items())
         if not filename:
             filename = "data"
         return "".join(c for c in filename if c not in invalid_chars)
@@ -150,9 +146,7 @@ class DefaultStatus:
         size = len(sequence)
         count_width = len(str(size))
         vars_width = max(len(self._vars(idx)) for idx in range(size))
-        self.template = "{{count:{}}}| {{vars:{}}} | {{report}}".format(
-            count_width, vars_width
-        )
+        self.template = "{{count:{}}}| {{vars:{}}} | {{report}}".format(count_width, vars_width)
 
     def _vars(self, idx):
         return ", ".join(
@@ -218,9 +212,7 @@ class ParallelFor:
         self.save_at = self.config.make_save_set(size)
 
         logname = self.config.filename + ".log" if self.config.filename else ""
-        self.pbar = progressbar.ProgressBar(
-            size, stream=self.config.pbar_fd, filename=logname
-        )
+        self.pbar = progressbar.ProgressBar(size, stream=self.config.pbar_fd, filename=logname)
 
         if self.config.num_threads == 1:
             self.loop = _sequential_for
@@ -372,9 +364,7 @@ def parallelize(num_threads=num_cores, queue_size=num_cores, **kwargs):
         variables = tuple(kwargs[k] for k in params if k in kwargs)
         fixtures = {k: v.default for k, v in params.items() if k not in kwargs}
 
-        return Factory(
-            variables, fixtures, produce_func, Config(callsig, num_threads, queue_size)
-        )
+        return Factory(variables, fixtures, produce_func, Config(callsig, num_threads, queue_size))
 
     return decorator
 

@@ -499,9 +499,7 @@ class Lattice:
         sub_center = sum(s.position for s in self.sublattices.values()) / self.nsub
         sub_center = rotate_axes(sub_center, axes)
         if vector_position is not None:
-            vector_position = (
-                sub_center if vector_position == "center" else vector_position
-            )
+            vector_position = sub_center if vector_position == "center" else vector_position
             self._plot_vectors(vectors, vector_position)
 
         # annotate sublattice names
@@ -522,9 +520,7 @@ class Lattice:
                 relative_indices.append(-term.relative_index)
 
         # 3D distance (in length units) of the neighboring cell from the original
-        offsets = [
-            sum(r * v for r, v in zip(ri, self.vectors)) for ri in relative_indices
-        ]
+        offsets = [sum(r * v for r, v in zip(ri, self.vectors)) for ri in relative_indices]
         offsets = [np.array(rotate_axes(p, axes)) for p in offsets]
 
         # annotate neighboring cell indices
@@ -580,9 +576,7 @@ class Lattice:
             ax.spines["left"].set_visible(False)
         else:
             ax.add_patch(
-                plt.Polygon(
-                    vertices, **with_defaults(kwargs, fill=False, color=default_color)
-                )
+                plt.Polygon(vertices, **with_defaults(kwargs, fill=False, color=default_color))
             )
 
             if decorate:
@@ -597,9 +591,7 @@ class Lattice:
                     text = "[" + ", ".join(map(x_pi, vertex)) + "]"
                     # align the text so that it goes away from the origin
                     ha, va = pltutils.align(*(-vertex))
-                    pltutils.annotate_box(
-                        text, vertex * 1.05, ha=ha, va=va, bbox=dict(lw=0)
-                    )
+                    pltutils.annotate_box(text, vertex * 1.05, ha=ha, va=va, bbox=dict(lw=0))
 
             x, y = zip(*vertices)
             pltutils.set_min_axis_length(abs(max(x) - min(x)) * 2, "x")

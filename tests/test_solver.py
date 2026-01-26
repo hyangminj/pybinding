@@ -86,9 +86,7 @@ def test_spatial_ldos(solver, baseline, plot_if_fails):
 def test_lapack(baseline, plot_if_fails):
     model = pb.Model(graphene.monolayer(), pb.translational_symmetry())
     solver = pb.solver.lapack(model)
-    assert pytest.fuzzy_equal(
-        solver.eigenvalues, [-3 * abs(graphene.t), 3 * abs(graphene.t)]
-    )
+    assert pytest.fuzzy_equal(solver.eigenvalues, [-3 * abs(graphene.t), 3 * abs(graphene.t)])
 
     from math import pi, sqrt
 

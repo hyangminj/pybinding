@@ -21,9 +21,7 @@ class FuzzySet:
         return len(self.data)
 
     def __contains__(self, item):
-        return any(
-            np.allclose(item, x, rtol=self.rtol, atol=self.atol) for x in self.data
-        )
+        return any(np.allclose(item, x, rtol=self.rtol, atol=self.atol) for x in self.data)
 
     def __iadd__(self, other):
         for item in other:

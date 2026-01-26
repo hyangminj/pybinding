@@ -99,9 +99,7 @@ def pickleable(props="", version: int = 0):
             )
 
         self.__dict__.update(state["dict"])
-        props_state = {
-            name: value for name, value in state.get("props", {}) if name in props
-        }
+        props_state = {name: value for name, value in state.get("props", {}) if name in props}
         for name, value in props_state:
             setattr(self, name, value)
 

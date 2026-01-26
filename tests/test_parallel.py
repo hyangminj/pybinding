@@ -21,9 +21,7 @@ def test_sweep(baseline, plot_if_fails):
         )
 
         kpm = pb.kpm(model, kernel=pb.lorentz_kernel())
-        return kpm.deferred_ldos(
-            energy, broadening=0.15, position=[0, 0], sublattice="B"
-        )
+        return kpm.deferred_ldos(energy, broadening=0.15, position=[0, 0], sublattice="B")
 
     silence_parallel_output(factory)
     labels = dict(title="test sweep", x="V (eV)", y="E (eV)", data="LDOS")

@@ -44,9 +44,7 @@ def _plot_freeform_shape(vertices, contains, resolution=(1000, 1000), **kwargs):
     area = np.flipud(area)
 
     if "color" in kwargs:
-        kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm(
-            [1], [kwargs.pop("color")]
-        )
+        kwargs["cmap"], kwargs["norm"] = pltutils.direct_cmap_norm([1], [kwargs.pop("color")])
 
     im = plt.imshow(
         area,
@@ -79,9 +77,7 @@ class _CompositionMixin:
         return self.__or__(other)
 
     def __sub__(self, other):
-        return CompositeShape(
-            self, other, lambda a, b: np.logical_and(a, np.logical_not(b))
-        )
+        return CompositeShape(self, other, lambda a, b: np.logical_and(a, np.logical_not(b)))
 
 
 class Line(_cpp.Line):

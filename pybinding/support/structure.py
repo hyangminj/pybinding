@@ -146,9 +146,7 @@ class AbstractSites(metaclass=ABCMeta):
         if target_site_family is None:
             return np.argsort(distances)
         else:
-            return ma.argsort(
-                ma.array(distances, mask=(self.ids != target_site_family))
-            )
+            return ma.argsort(ma.array(distances, mask=(self.ids != target_site_family)))
 
 
 class Sites(AbstractSites):

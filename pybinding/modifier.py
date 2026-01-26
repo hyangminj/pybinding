@@ -58,14 +58,10 @@ def _process_modifier_args(args, keywords, requested_argnames):
             return obj
 
     kwargs = dict(zip(keywords, args))
-    requested_kwargs = {
-        k: process(v) for k, v in kwargs.items() if k in requested_argnames
-    }
+    requested_kwargs = {k: process(v) for k, v in kwargs.items() if k in requested_argnames}
 
     if "sites" in requested_argnames and "sites" not in kwargs:
-        requested_kwargs["sites"] = Sites(
-            (kwargs[k] for k in ("x", "y", "z")), kwargs["sub_id"]
-        )
+        requested_kwargs["sites"] = Sites((kwargs[k] for k in ("x", "y", "z")), kwargs["sub_id"])
 
     if "system" in keywords:
         requested_kwargs.update(
@@ -141,9 +137,7 @@ def _sanitize_modifier_result(result, args, expected_num_return, can_be_complex)
     return result[0] if expected_num_return == 1 else result
 
 
-def _make_modifier(
-    func, kind, init, keywords, has_sites=True, num_return=1, can_be_complex=False
-):
+def _make_modifier(func, kind, init, keywords, has_sites=True, num_return=1, can_be_complex=False):
     """Turn a regular function into a modifier of the desired kind
 
     Parameters
@@ -350,9 +344,7 @@ def onsite_energy_modifier(is_double=False, **kwargs):
         )
     """
     if "double" in kwargs:
-        warnings.warn(
-            "Use `is_double` parameter name instead of `double`", LoudDeprecationWarning
-        )
+        warnings.warn("Use `is_double` parameter name instead of `double`", LoudDeprecationWarning)
         is_double = kwargs["double"]
     return functools.partial(
         _make_modifier,
@@ -415,9 +407,7 @@ def hopping_energy_modifier(is_double=False, is_complex=False, **kwargs):
         )
     """
     if "double" in kwargs:
-        warnings.warn(
-            "Use `is_double` parameter name instead of `double`", LoudDeprecationWarning
-        )
+        warnings.warn("Use `is_double` parameter name instead of `double`", LoudDeprecationWarning)
         is_double = kwargs["double"]
     return functools.partial(
         _make_modifier,

@@ -83,9 +83,7 @@ class CompareFigure:
                 actual_file.parent.mkdir(parents=True)
             plt.savefig(actual_filename, **self.savefig_kwargs)
 
-            baseline = path_from_fixture(
-                self.request, prefix="baseline_plots", ext=self.ext
-            )
+            baseline = path_from_fixture(self.request, prefix="baseline_plots", ext=self.ext)
             baseline_filename = str(baseline)
 
             if baseline.exists():
@@ -110,9 +108,7 @@ class CompareFigure:
 
     def report(self, fail_data):
         def reportfile(variant):
-            path = path_from_fixture(
-                self.request, prefix="failed", variant=variant, ext=self.ext
-            )
+            path = path_from_fixture(self.request, prefix="failed", variant=variant, ext=self.ext)
             if not path.parent.exists():
                 path.parent.mkdir(parents=True)
             return str(path)

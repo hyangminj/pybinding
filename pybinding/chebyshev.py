@@ -521,8 +521,7 @@ class _PythonImpl:
 
             h = self.model.hamiltonian
             self.energy_range = [
-                eigsh(h, which=x, k=1, tol=2e-3, return_eigenvectors=False)[0]
-                for x in ("SA", "LA")
+                eigsh(h, which=x, k=1, tol=2e-3, return_eigenvectors=False)[0] for x in ("SA", "LA")
             ]
             return self.energy_range
 
@@ -605,9 +604,7 @@ class _PythonImpl:
         with timed() as self._stats["total_time"]:
             system_index = self.model.system.find_nearest(position, sublattice)
             ham_idx = self.model.system.to_hamiltonian_indices(system_index)
-            result_data = np.array(
-                [self._ldos(i, energy, broadening) for i in ham_idx]
-            ).T
+            result_data = np.array([self._ldos(i, energy, broadening) for i in ham_idx]).T
             if reduce:
                 return np.sum(result_data, axis=1)
             else:

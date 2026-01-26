@@ -158,9 +158,7 @@ class ProgressBar:
 
         semi_formatted_widgets = [format_fixed_size(w) for w in self.widgets]
         num_remaining = sum(callable(w) for w in semi_formatted_widgets)
-        width_formatted = sum(
-            len(w) if not callable(w) else 0 for w in semi_formatted_widgets
-        )
+        width_formatted = sum(len(w) if not callable(w) else 0 for w in semi_formatted_widgets)
         width_remaining = self.width - width_formatted
 
         def format_variable_size(widget):
