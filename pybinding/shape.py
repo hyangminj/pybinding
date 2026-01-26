@@ -93,10 +93,17 @@ class Line(_cpp.Line):
 
     def __init__(self, a, b):
         # Convert to arrays and ensure size 2 (NumPy 2.0 compatible)
-        a, b = np.array(a), np.array(b)
-        # Use np.resize() instead of in-place resize for NumPy 2.0 compatibility
-        a = np.resize(a, 2)
-        b = np.resize(b, 2)
+        # Pad with zeros if the input is 1D (for 1D lattices)
+        def ensure_size_2(arr):
+            arr = np.atleast_1d(np.asarray(arr))
+            if arr.size < 2:
+                result = np.zeros(2, dtype=arr.dtype)
+                result[: arr.size] = arr
+                return result
+            return arr[:2]
+
+        a = ensure_size_2(a)
+        b = ensure_size_2(b)
         super().__init__(a, b)
         self.a = a
         self.b = b
