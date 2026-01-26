@@ -266,11 +266,18 @@ def test_brillouin_zone():
     assert pytest.fuzzy_equal(lat.brillouin_zone(), [-pi, pi])
 
     lat = pb.Lattice(a1=[0, 1], a2=[0.5, 0.5])
-    assert pytest.fuzzy_equal(
-        lat.brillouin_zone(), [[0, -2 * pi], [2 * pi, 0], [0, 2 * pi], [-2 * pi, 0]]
-    )
+    # The order of vertices may vary by platform, so compare as sets of points
+    expected = np.array([[0, -2 * pi], [2 * pi, 0], [0, 2 * pi], [-2 * pi, 0]])
+    actual = np.array(lat.brillouin_zone())
+    # Sort both arrays by their coordinates for comparison
+    expected_sorted = expected[np.lexsort(expected.T)]
+    actual_sorted = actual[np.lexsort(actual.T)]
+    assert pytest.fuzzy_equal(actual_sorted, expected_sorted)
 
     # Identical lattices represented using acute and obtuse angles between primitive vectors
     acute = pb.Lattice(a1=[1, 0], a2=[1 / 2, 1 / 2 * sqrt(3)])
     obtuse = pb.Lattice(a1=[1 / 2, 1 / 2 * sqrt(3)], a2=[1 / 2, -1 / 2 * sqrt(3)])
-    assert pytest.fuzzy_equal(acute.brillouin_zone(), obtuse.brillouin_zone())
+    # Sort for comparison since vertex order may vary
+    acute_bz = np.array(acute.brillouin_zone())
+    obtuse_bz = np.array(obtuse.brillouin_zone())
+    assert pytest.fuzzy_equal(acute_bz[np.lexsort(acute_bz.T)], obtuse_bz[np.lexsort(obtuse_bz.T)])
