@@ -92,9 +92,11 @@ class Line(_cpp.Line):
     """
 
     def __init__(self, a, b):
-        a, b = map(np.array, (a, b))
-        a.resize(2)
-        b.resize(2)
+        # Convert to arrays and ensure size 2 (NumPy 2.0 compatible)
+        a, b = np.array(a), np.array(b)
+        # Use np.resize() instead of in-place resize for NumPy 2.0 compatibility
+        a = np.resize(a, 2)
+        b = np.resize(b, 2)
         super().__init__(a, b)
         self.a = a
         self.b = b
