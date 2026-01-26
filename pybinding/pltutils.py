@@ -1,4 +1,5 @@
 """Collection of utility functions for matplotlib"""
+
 import warnings
 from contextlib import contextmanager, suppress
 
@@ -9,8 +10,17 @@ import matplotlib.pyplot as plt
 
 from .utils import with_defaults
 
-__all__ = ['cm2inch', 'colorbar', 'despine', 'despine_all', 'get_palette', 'legend', 'respine',
-           'set_palette', 'use_style']
+__all__ = [
+    "cm2inch",
+    "colorbar",
+    "despine",
+    "despine_all",
+    "get_palette",
+    "legend",
+    "respine",
+    "set_palette",
+    "use_style",
+]
 
 
 def _set_smart_bounds(spine, value):
@@ -78,7 +88,7 @@ def despine(trim=False):
         Trim spines so that they don't extend beyond the last major ticks.
     """
     ax = plt.gca()
-    if ax.name == '3d':
+    if ax.name == "3d":
         return
 
     for side in ["top", "right"]:
@@ -90,7 +100,7 @@ def despine(trim=False):
         ax.xaxis.set_major_locator(plt.MaxNLocator(nbins="auto", steps=[1, 2, 5, 10]))
         ax.yaxis.set_major_locator(plt.MaxNLocator(nbins="auto", steps=[1, 2, 5, 10]))
 
-        for v, side in [('x', 'bottom'), ('y', 'left')]:
+        for v, side in [("x", "bottom"), ("y", "left")]:
             _set_smart_bounds(ax.spines[side], True)
             ticks = getattr(ax, "get_{}ticks".format(v))()
             vmin, vmax = getattr(ax, "get_{}lim".format(v))()
@@ -101,16 +111,16 @@ def despine(trim=False):
 def despine_all():
     """Remove all spines, axes labels and ticks"""
     ax = plt.gca()
-    if ax.name == '3d':
+    if ax.name == "3d":
         return
 
-    for side in ['top', 'right', 'bottom', 'left']:
+    for side in ["top", "right", "bottom", "left"]:
         ax.spines[side].set_visible(False)
 
-    ax.xaxis.set_ticks_position('none')
-    ax.yaxis.set_ticks_position('none')
-    ax.set_xlabel('')
-    ax.set_ylabel('')
+    ax.xaxis.set_ticks_position("none")
+    ax.yaxis.set_ticks_position("none")
+    ax.set_xlabel("")
+    ax.set_ylabel("")
     ax.set_xticks([])
     ax.set_yticks([])
 
@@ -118,14 +128,14 @@ def despine_all():
 def respine():
     """Redraw all spines, opposite of :func:`despine`"""
     ax = plt.gca()
-    for side in ['top', 'right', 'bottom', 'left']:
+    for side in ["top", "right", "bottom", "left"]:
         ax.spines[side].set_visible(True)
         _set_smart_bounds(ax.spines[side], False)
-    ax.xaxis.set_ticks_position('both')
-    ax.yaxis.set_ticks_position('both')
+    ax.xaxis.set_ticks_position("both")
+    ax.yaxis.set_ticks_position("both")
 
 
-def set_min_axis_length(length, axis='xy'):
+def set_min_axis_length(length, axis="xy"):
     """Set minimum axis length
 
     Parameters
@@ -167,7 +177,7 @@ def set_min_axis_ratio(ratio):
         plt.ylim(center - lim, center + lim)
 
 
-def add_margin(margin=0.08, axis='xy'):
+def add_margin(margin=0.08, axis="xy"):
     """Adjust the axis length to include a margin (after autoscale)
 
     Parameters
@@ -196,6 +206,7 @@ def blend_colors(color, bg, factor):
         Blend factor: 0 to 1.
     """
     from matplotlib.colors import colorConverter
+
     color, bg = (np.array(colorConverter.to_rgb(c)) for c in (color, bg))
     return (1 - factor) * bg + factor * color
 
@@ -218,23 +229,23 @@ def colorbar(mappable=None, cax=None, ax=None, label="", powerlimits=(0, 0), **k
     cbar = plt.colorbar(mappable, cax, ax, **with_defaults(kwargs, pad=0.02, aspect=28))
 
     cbar.solids.set_edgecolor("face")  # remove white gaps between segments
-    cbar.solids.set_rasterized(True)   # and reduce pdf and svg output size
+    cbar.solids.set_rasterized(True)  # and reduce pdf and svg output size
 
-    if powerlimits and hasattr(cbar.formatter, 'set_powerlimits'):
+    if powerlimits and hasattr(cbar.formatter, "set_powerlimits"):
         cbar.formatter.set_powerlimits(powerlimits)
     cbar.update_ticks()
 
     if label:
-        if cbar.formatter.get_offset() or cbar.orientation != 'vertical':
+        if cbar.formatter.get_offset() or cbar.orientation != "vertical":
             cbar.set_label(label)
         else:
             cbar.ax.set_xlabel(label)
-            cbar.ax.xaxis.set_label_position('top')
+            cbar.ax.xaxis.set_label_position("top")
 
     return cbar
 
 
-def annotate_box(s, xy, fontcolor='black', **kwargs):
+def annotate_box(s, xy, fontcolor="black", **kwargs):
     """Annotate with a box around the text
 
     Parameters
@@ -248,19 +259,29 @@ def annotate_box(s, xy, fontcolor='black', **kwargs):
     **kwargs
         Forwarded to `plt.annotate()`.
     """
-    kwargs['bbox'] = with_defaults(
-        kwargs.get('bbox', {}),
-        boxstyle="round,pad=0.2", alpha=0.5, lw=0.3,
-        fc='white' if fontcolor != 'white' else 'black'
+    kwargs["bbox"] = with_defaults(
+        kwargs.get("bbox", {}),
+        boxstyle="round,pad=0.2",
+        alpha=0.5,
+        lw=0.3,
+        fc="white" if fontcolor != "white" else "black",
     )
 
-    if all(key in kwargs for key in ['arrowprops', 'xytext']):
-        kwargs['arrowprops'] = with_defaults(
-            kwargs['arrowprops'], dict(arrowstyle="->", color=fontcolor)
+    if all(key in kwargs for key in ["arrowprops", "xytext"]):
+        kwargs["arrowprops"] = with_defaults(
+            kwargs["arrowprops"], dict(arrowstyle="->", color=fontcolor)
         )
 
-    plt.annotate(s, xy, **with_defaults(kwargs, color=fontcolor, horizontalalignment='center',
-                                        verticalalignment='center'))
+    plt.annotate(
+        s,
+        xy,
+        **with_defaults(
+            kwargs,
+            color=fontcolor,
+            horizontalalignment="center",
+            verticalalignment="center",
+        ),
+    )
 
 
 def cm2inch(*values):
@@ -282,7 +303,7 @@ def cm2inch(*values):
     return tuple(v / 2.54 for v in values)
 
 
-def legend(*args, reverse=False, facecolor='0.98', lw=0, **kwargs):
+def legend(*args, reverse=False, facecolor="0.98", lw=0, **kwargs):
     """Custom legend with modified style and option to reverse label order
 
     Parameters
@@ -328,9 +349,11 @@ def get_palette(name=None, num_colors=8, start=0):
     List[color]
     """
     if not name:
-        return [x['color'] for x in mpl.rcParams["axes.prop_cycle"]]
+        return [x["color"] for x in mpl.rcParams["axes.prop_cycle"]]
 
-    brewer = dict(Set1=9, Set2=8, Set3=12, Pastel1=9, Pastel2=8, Accent=8, Dark2=8, Paired=12)
+    brewer = dict(
+        Set1=9, Set2=8, Set3=12, Pastel1=9, Pastel2=8, Accent=8, Dark2=8, Paired=12
+    )
     if name in brewer:
         total = brewer[name]
         take = min(num_colors, total)
@@ -342,6 +365,7 @@ def get_palette(name=None, num_colors=8, start=0):
     palette = cmap(bins)[:, :3]
 
     from itertools import cycle, islice
+
     palette = list(islice(cycle(palette), start, start + num_colors))
     return [list(color) for color in palette]
 
@@ -359,7 +383,7 @@ def set_palette(name=None, num_colors=8, start=0):
         Staring from this color number.
     """
     palette = get_palette(name, num_colors, start)
-    mpl.rcParams["axes.prop_cycle"] = plt.cycler('color', palette)
+    mpl.rcParams["axes.prop_cycle"] = plt.cycler("color", palette)
     mpl.rcParams["patch.facecolor"] = palette[0]
     plt.gca().set_prop_cycle(mpl.rcParams["axes.prop_cycle"])
 
@@ -383,10 +407,11 @@ def direct_cmap_norm(data, colors, blend=1):
     if not isinstance(colors, (list, tuple)):
         colors = [colors]
     if blend < 1:
-        colors = [blend_colors(c, 'white', blend) for c in colors]
+        colors = [blend_colors(c, "white", blend) for c in colors]
 
     # colormap with an boundary norm to match the unique data points
     from matplotlib.colors import ListedColormap, BoundaryNorm
+
     cmap = ListedColormap(colors)
 
     data = np.asarray(data)
@@ -417,61 +442,64 @@ def align(x, y):
     ('left', 'center')
     """
     if np.isclose(x, 0):
-        ha = 'center'
+        ha = "center"
     elif x > 0:
-        ha = 'right'
+        ha = "right"
     else:
-        ha = 'left'
+        ha = "left"
 
     if np.isclose(y, 0):
-        va = 'center'
+        va = "center"
     elif y > 0:
-        va = 'top'
+        va = "top"
     else:
-        va = 'bottom'
+        va = "bottom"
 
     return ha, va
 
 
 def _make_style():
-    nearly_black = '0.15'
+    nearly_black = "0.15"
     linewidth = 0.6
     dpi = 160
-    palette = list(get_palette('Set1'))
-    palette[5] = list(get_palette('Set2'))[5]
+    palette = list(get_palette("Set1"))
+    palette[5] = list(get_palette("Set2"))[5]
 
     style = {
-        'lines.linewidth': 1.2,  # [1.5]
-        'lines.solid_capstyle': 'round',  # [projecting] butt|round|projecting
-        'font.size': 7.0,  # [10.0]
-        'text.color': nearly_black,  # [black]
-        'mathtext.default': 'regular',  # [it] the default font to use for math.
-        'axes.edgecolor': nearly_black,  # [black] axes edge color
-        'axes.linewidth': linewidth,  # [0.8] edge linewidth
-        'axes.labelcolor': nearly_black,  # [black]
-        'axes.unicode_minus': False,  # [True] use unicode for the minus symbol
-        'axes.prop_cycle': plt.cycler('color', palette),  # ['bgrcmyk']
-        'axes.autolimit_mode': 'round_numbers',  # ['data']
-        'axes.xmargin': 0,  # [0.05]
-        'axes.ymargin': 0,  # [0.05]
-        'patch.facecolor': palette[1],  # [b]
-        'xtick.major.size': 2.5,  # [3.5] major tick size in points
-        'xtick.minor.size': 1.0,  # [2] minor tick size in points
-        'xtick.major.width': linewidth,  # [0.8] major tick width in points
-        'xtick.color': nearly_black,  # [black] color of the tick labels
-        'xtick.direction': "in",  # [out] in, out, or inout
-        'ytick.major.size': 2.5,  # [3.5] major tick size in points
-        'ytick.minor.size': 1.0,  # [2] minor tick size in points
-        'ytick.major.width': linewidth,  # [0.8] major tick width in points
-        'ytick.color': nearly_black,  # [black] color of the tick labels
-        'ytick.direction': "in",  # [out] in, out, or inout
-        'grid.linestyle': ":",  # [-]
-        'grid.linewidth': 0.5,  # [0.8]
-        'grid.alpha': 0.6,  # [1.0]
-        'figure.figsize': (3.4, 2.92),  # [(6.4, 4.8) inch] (3.4, 2.92) inch == (8.6, 7.4) cm
-        'figure.dpi': dpi,  # [100] figure dots per inch
-        'savefig.bbox': 'tight',  # ['standard']
-        'savefig.pad_inches': 0.04,  # [0.1] padding to be used when bbox is set to 'tight'
+        "lines.linewidth": 1.2,  # [1.5]
+        "lines.solid_capstyle": "round",  # [projecting] butt|round|projecting
+        "font.size": 7.0,  # [10.0]
+        "text.color": nearly_black,  # [black]
+        "mathtext.default": "regular",  # [it] the default font to use for math.
+        "axes.edgecolor": nearly_black,  # [black] axes edge color
+        "axes.linewidth": linewidth,  # [0.8] edge linewidth
+        "axes.labelcolor": nearly_black,  # [black]
+        "axes.unicode_minus": False,  # [True] use unicode for the minus symbol
+        "axes.prop_cycle": plt.cycler("color", palette),  # ['bgrcmyk']
+        "axes.autolimit_mode": "round_numbers",  # ['data']
+        "axes.xmargin": 0,  # [0.05]
+        "axes.ymargin": 0,  # [0.05]
+        "patch.facecolor": palette[1],  # [b]
+        "xtick.major.size": 2.5,  # [3.5] major tick size in points
+        "xtick.minor.size": 1.0,  # [2] minor tick size in points
+        "xtick.major.width": linewidth,  # [0.8] major tick width in points
+        "xtick.color": nearly_black,  # [black] color of the tick labels
+        "xtick.direction": "in",  # [out] in, out, or inout
+        "ytick.major.size": 2.5,  # [3.5] major tick size in points
+        "ytick.minor.size": 1.0,  # [2] minor tick size in points
+        "ytick.major.width": linewidth,  # [0.8] major tick width in points
+        "ytick.color": nearly_black,  # [black] color of the tick labels
+        "ytick.direction": "in",  # [out] in, out, or inout
+        "grid.linestyle": ":",  # [-]
+        "grid.linewidth": 0.5,  # [0.8]
+        "grid.alpha": 0.6,  # [1.0]
+        "figure.figsize": (
+            3.4,
+            2.92,
+        ),  # [(6.4, 4.8) inch] (3.4, 2.92) inch == (8.6, 7.4) cm
+        "figure.dpi": dpi,  # [100] figure dots per inch
+        "savefig.bbox": "tight",  # ['standard']
+        "savefig.pad_inches": 0.04,  # [0.1] padding to be used when bbox is set to 'tight'
     }
 
     return style
@@ -490,13 +518,13 @@ def _is_jupyter_notebook():
 
 
 def _is_notebook_inline_backend():
-    return _is_jupyter_notebook() and 'backend_inline' in mpl.get_backend()
+    return _is_jupyter_notebook() and "backend_inline" in mpl.get_backend()
 
 
 def _reset_notebook_inline_backend():
     with suppress(NameError):
         # noinspection PyUnresolvedReferences
-        get_ipython().run_line_magic('matplotlib', 'inline')
+        get_ipython().run_line_magic("matplotlib", "inline")
 
 
 def use_style(style=pb_style):

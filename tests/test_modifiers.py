@@ -4,7 +4,6 @@ import numpy as np
 import pybinding as pb
 from pybinding.repository import graphene
 
-
 one, zero = np.ones(1), np.zeros(1)
 complex_one = np.ones(1, dtype=np.complex64)
 
@@ -38,6 +37,7 @@ def test_callsig():
     @pb.site_state_modifier
     def local_mod(state):
         return np.ones_like(state)
+
     assert "test_callsig()" == str(local_mod)
     assert "test_callsig()" == repr(local_mod)
 
@@ -45,7 +45,9 @@ def test_callsig():
         @pb.site_state_modifier
         def actual_mod(state):
             return np.ones_like(state) * a * b
+
         return actual_mod
+
     assert "wrapped_mod(a=1, b=8)" == str(wrapped_mod(1, 8))
     assert "test_callsig.<locals>.wrapped_mod(a=1, b=8)" == repr(wrapped_mod(1, 8))
 
@@ -77,7 +79,11 @@ def test_type_errors():
     build_model(pb.onsite_energy_modifier(complex_ones))
 
     with pytest.raises(TypeError) as excinfo:
-        build_model(pb.site_position_modifier(lambda x: (np.ones_like(x, dtype=np.complex128),)*3))
+        build_model(
+            pb.site_position_modifier(
+                lambda x: (np.ones_like(x, dtype=np.complex128),) * 3
+            )
+        )
     assert "'complex128', but expected same kind as 'float32'" in str(excinfo.value)
 
 
@@ -89,34 +95,49 @@ def test_cast():
         return np.ones_like(energy, dtype=np.float32)
 
     for dtype in dtypes:
-        assert float32_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
+        assert (
+            float32_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
+        )
 
     @pb.hopping_energy_modifier
     def float64_out(energy):
         return np.ones_like(energy, dtype=np.float64)
 
     for dtype in dtypes:
-        assert float64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
+        assert (
+            float64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == dtype
+        )
 
     @pb.hopping_energy_modifier
     def complex64_out(energy):
         return np.ones_like(energy, dtype=np.complex64)
 
-    for dtype, result in zip(dtypes, [np.complex64, np.complex64, np.complex64, np.complex128]):
-        assert complex64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == result
+    for dtype, result in zip(
+        dtypes, [np.complex64, np.complex64, np.complex64, np.complex128]
+    ):
+        assert (
+            complex64_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype
+            == result
+        )
 
     @pb.hopping_energy_modifier
     def complex128_out(energy):
         return np.ones_like(energy, dtype=np.complex128)
 
-    for dtype, result in zip(dtypes, [np.complex128, np.complex128, np.complex64, np.complex128]):
-        assert complex128_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype == result
+    for dtype, result in zip(
+        dtypes, [np.complex128, np.complex128, np.complex64, np.complex128]
+    ):
+        assert (
+            complex128_out.apply(np.ones(1, dtype=dtype), zero, zero, zero).dtype
+            == result
+        )
 
 
 def test_site_state():
     @pb.site_state_modifier
     def mod(state):
         return np.ones_like(state)
+
     assert np.all(mod(zero))
     assert np.all(mod.apply(zero, one, one, one, one))
 
@@ -141,10 +162,24 @@ def test_site_state():
     model = build_model(check_args, pb.primitive(1, 2))
     assert model.hamiltonian.dtype == np.float32
 
-    assert_state("A", shape=(2,), state=[True] * 2, nearest=[1, 0],
-                 x=[-graphene.a / 2, 0], y=[-2 * graphene.a_cc, -graphene.a_cc / 2], z=[0, 0])
-    assert_state("B", shape=(2,), state=[True] * 2, nearest=[1, 0],
-                 x=[-graphene.a / 2, 0], y=[-graphene.a_cc, graphene.a_cc / 2], z=[0, 0])
+    assert_state(
+        "A",
+        shape=(2,),
+        state=[True] * 2,
+        nearest=[1, 0],
+        x=[-graphene.a / 2, 0],
+        y=[-2 * graphene.a_cc, -graphene.a_cc / 2],
+        z=[0, 0],
+    )
+    assert_state(
+        "B",
+        shape=(2,),
+        state=[True] * 2,
+        nearest=[1, 0],
+        x=[-graphene.a / 2, 0],
+        y=[-graphene.a_cc, graphene.a_cc / 2],
+        z=[0, 0],
+    )
 
     @pb.site_state_modifier
     def remove_site(state):
@@ -168,6 +203,7 @@ def test_site_position():
     @pb.site_position_modifier
     def mod(x, y, z):
         return x + 1, y + 1, z + 1
+
     assert (one,) * 3 == mod(zero, zero, zero)
     assert (one,) * 3 == mod.apply(zero, zero, zero, one)
 
@@ -192,10 +228,22 @@ def test_site_position():
     model = build_model(check_args, pb.primitive(1, 2))
     assert model.hamiltonian.dtype == np.float32
 
-    assert_positions("A", shape=(2,), nearest=[1, 0],
-                     x=[-graphene.a / 2, 0], y=[-2 * graphene.a_cc, -graphene.a_cc / 2], z=[0, 0])
-    assert_positions("B", shape=(2,), nearest=[1, 0],
-                     x=[-graphene.a / 2, 0], y=[-graphene.a_cc, graphene.a_cc / 2], z=[0, 0])
+    assert_positions(
+        "A",
+        shape=(2,),
+        nearest=[1, 0],
+        x=[-graphene.a / 2, 0],
+        y=[-2 * graphene.a_cc, -graphene.a_cc / 2],
+        z=[0, 0],
+    )
+    assert_positions(
+        "B",
+        shape=(2,),
+        nearest=[1, 0],
+        x=[-graphene.a / 2, 0],
+        y=[-graphene.a_cc, graphene.a_cc / 2],
+        z=[0, 0],
+    )
 
     @pb.site_position_modifier
     def shift(x, y, z):
@@ -203,7 +251,9 @@ def test_site_position():
 
     model = build_model(check_args, shift)
     assert pytest.fuzzy_equal(model.system.x, [1, 1])
-    assert pytest.fuzzy_equal(model.system.y, [1 - graphene.a_cc / 2, 1 + graphene.a_cc / 2])
+    assert pytest.fuzzy_equal(
+        model.system.y, [1 - graphene.a_cc / 2, 1 + graphene.a_cc / 2]
+    )
     assert pytest.fuzzy_equal(model.system.z, [1, 1])
 
 
@@ -211,6 +261,7 @@ def test_onsite():
     @pb.onsite_energy_modifier
     def mod(energy):
         return energy + 2
+
     assert np.all(2 == mod(zero))
     assert np.all(2 == mod.apply(zero, zero, zero, zero, one))
 
@@ -251,6 +302,7 @@ def test_hopping_energy():
     @pb.hopping_energy_modifier
     def mod(energy):
         return energy * 2
+
     assert np.all(2 == mod(one))
     assert np.all(2 == mod.apply(one, zero, zero, zero, zero, zero, zero, zero))
 
@@ -297,6 +349,7 @@ def test_hopping_energy():
 
 def test_site_generator():
     """Generated some disordered sites"""
+
     @pb.site_generator("New", energy=0.4)
     def site_gen():
         x = [10, 20, 30]
@@ -330,7 +383,9 @@ def test_hopping_generator():
     def onsite_offset(energy):
         return energy + 3 * graphene.t_nn
 
-    model = pb.Model(graphene.monolayer(), next_nearest, onsite_offset, graphene.hexagon_ac(1))
+    model = pb.Model(
+        graphene.monolayer(), next_nearest, onsite_offset, graphene.hexagon_ac(1)
+    )
     expected = pb.Model(graphene.monolayer(2), graphene.hexagon_ac(1))
     assert pytest.fuzzy_equal(model.hamiltonian, expected.hamiltonian)
 
@@ -354,8 +409,7 @@ def test_site_and_hopping_interaction():
     def square_lattice():
         lat = pb.Lattice(a1=[d, 0], a2=[0, d])
         lat.add_sublattices(("A", [0, 0], v))
-        lat.add_hoppings(([0, 1], "A", "A", t),
-                         ([1, 0], "A", "A", t))
+        lat.add_hoppings(([0, 1], "A", "A", t), ([1, 0], "A", "A", t))
         return lat
 
     @pb.site_generator(name="B", energy=v)
@@ -383,14 +437,16 @@ def test_site_and_hopping_interaction():
         from_idx = edge_idx[:-1]
         return to_idx, from_idx
 
-    model = pb.Model(square_lattice(), pb.primitive(6, 4),
-                     edge_sites, edge_hoppings, edge_hoppings2)
+    model = pb.Model(
+        square_lattice(), pb.primitive(6, 4), edge_sites, edge_hoppings, edge_hoppings2
+    )
     expected = pb.Model(square_lattice(), pb.primitive(6, 5))
     assert pytest.fuzzy_equal(model.hamiltonian, expected.hamiltonian)
 
 
 def test_wrapper_return():
     """Make sure the wrapper return type conversion is working"""
+
     @pb.hopping_energy_modifier
     def mul(energy):
         """Returning a non-contiguous view will force the wrapper to create a copy"""
@@ -426,6 +482,7 @@ def test_invalid_return():
 
 def test_mutability():
     """Only modifier return arguments should be mutable"""
+
     @pb.onsite_energy_modifier
     def mod_energy(energy):
         """The return energy is writable"""
@@ -449,16 +506,18 @@ def test_multiorbital_onsite():
     def multi_orbital_lattice():
         lat = pb.Lattice([1, 0], [0, 1])
 
-        tau_z = np.array([[1, 0],
-                          [0, -1]])
-        tau_x = np.array([[0, 1],
-                          [1, 0]])
-        lat.add_sublattices(("A", [0,   0], tau_z + 2 * tau_x),
-                            ("B", [0, 0.1], 0.5),
-                            ("C", [0, 0.2], [1, 2, 3]))
-        lat.add_hoppings(([0, -1], "A", "A", 3 * tau_z),
-                         ([1,  0], "A", "A", 3 * tau_z),
-                         ([0, 0], "B", "C", [[2, 3, 4]]))
+        tau_z = np.array([[1, 0], [0, -1]])
+        tau_x = np.array([[0, 1], [1, 0]])
+        lat.add_sublattices(
+            ("A", [0, 0], tau_z + 2 * tau_x),
+            ("B", [0, 0.1], 0.5),
+            ("C", [0, 0.2], [1, 2, 3]),
+        )
+        lat.add_hoppings(
+            ([0, -1], "A", "A", 3 * tau_z),
+            ([1, 0], "A", "A", 3 * tau_z),
+            ([0, 0], "B", "C", [[2, 3, 4]]),
+        )
         return lat
 
     capture = {}
@@ -488,12 +547,9 @@ def test_multiorbital_onsite():
     assert_positions("B", x=[0, 1], y=[0.1, 0.1], z=[0, 0])
     assert_positions("C", x=[0, 1], y=[0.2, 0.2], z=[0, 0])
 
-    assert_onsite("A", shape=(2, 2, 2), energy=[[1, 2],
-                                                [2, -1]])
+    assert_onsite("A", shape=(2, 2, 2), energy=[[1, 2], [2, -1]])
     assert_onsite("B", shape=(2,), energy=[0.5])
-    assert_onsite("C", shape=(2, 3, 3), energy=[[1, 0, 0],
-                                                [0, 2, 0],
-                                                [0, 0, 3]])
+    assert_onsite("C", shape=(2, 3, 3), energy=[[1, 0, 0], [0, 2, 0], [0, 0, 3]])
 
     @pb.onsite_energy_modifier
     def onsite_mod(energy, x, y, z, sub_id):
@@ -510,42 +566,43 @@ def test_multiorbital_onsite():
     assert model.system.num_sites == 6
     assert model.hamiltonian.shape[0] == 12
 
-    assert_onsite("A", shape=(2, 2, 2), energy=[[2, 2],
-                                                [2, 0]])
+    assert_onsite("A", shape=(2, 2, 2), energy=[[2, 2], [2, 0]])
     assert_onsite("B", shape=(2,), energy=[1])
-    assert_onsite("C", shape=(2, 3, 3), energy=[[1, 1, 0],
-                                                [0, 3, 0],
-                                                [0, 1, 3]])
+    assert_onsite("C", shape=(2, 3, 3), energy=[[1, 1, 0], [0, 3, 0], [0, 1, 3]])
 
 
 def test_multiorbital_hoppings():
     """For multi-orbital lattices, hopping modifiers get `energy` as 3D array"""
+
     def multi_orbital_lattice():
         lat = pb.Lattice([1, 0], [0, 1])
 
-        tau_z = np.array([[1, 0],
-                          [0, -1]])
-        tau_x = np.array([[0, 1],
-                          [1, 0]])
-        lat.add_sublattices(("A", [-0.25, 0.0], tau_z + 2 * tau_x),
-                            ("B", [0.0, 0.5], 0.5),
-                            ("C", [0.25, 0.0], [1, 2, 3]))
-        lat.register_hopping_energies({
-            "t11": 1,
-            "t1|2": 2,
-            "t1|3": 3,
-            "t22": 3 * tau_z,
-            "t23": [[0, 1, 2],
-                    [3, 4, 5]],
-            "t13": [[11, 12, 13]],
-        })
-        lat.add_hoppings(([1,  0], "B", "B", "t11"),
-                         ([0,  1], "B", "B", "t11"),
-                         ([1,  1], "B", "B", "t1|2"),
-                         ([1, -1], "B", "B", "t1|3"),
-                         ([0,  1], "A", "A", "t22"),
-                         ([0,  0], "A", "C", "t23"),
-                         ([0,  0], "B", "C", "t13"))
+        tau_z = np.array([[1, 0], [0, -1]])
+        tau_x = np.array([[0, 1], [1, 0]])
+        lat.add_sublattices(
+            ("A", [-0.25, 0.0], tau_z + 2 * tau_x),
+            ("B", [0.0, 0.5], 0.5),
+            ("C", [0.25, 0.0], [1, 2, 3]),
+        )
+        lat.register_hopping_energies(
+            {
+                "t11": 1,
+                "t1|2": 2,
+                "t1|3": 3,
+                "t22": 3 * tau_z,
+                "t23": [[0, 1, 2], [3, 4, 5]],
+                "t13": [[11, 12, 13]],
+            }
+        )
+        lat.add_hoppings(
+            ([1, 0], "B", "B", "t11"),
+            ([0, 1], "B", "B", "t11"),
+            ([1, 1], "B", "B", "t1|2"),
+            ([1, -1], "B", "B", "t1|3"),
+            ([0, 1], "A", "A", "t22"),
+            ([0, 0], "A", "C", "t23"),
+            ([0, 0], "B", "C", "t13"),
+        )
         return lat
 
     capture = {}
@@ -575,24 +632,46 @@ def test_multiorbital_hoppings():
     assert model.system.num_sites == 12
     assert model.hamiltonian.shape[0] == 24
 
-    assert_positions("t11",
-                     x1=[-1, -1, 0, -1], y1=[-0.5, -0.5, -0.5, 0.5], z1=[0, 0, 0, 0],
-                     x2=[0, -1, 0, 0], y2=[-0.5, 0.5, 0.5, 0.5], z2=[0, 0, 0, 0])
-    assert_positions("t22",
-                     x1=[-1.25, -0.25], y1=[-1, -1], z1=[0, 0],
-                     x2=[-1.25, -0.25], y2=[0, 0], z2=[0, 0])
-    assert_positions("t23",
-                     x1=[-1.25, -0.25, -1.25, -0.25], y1=[-1, -1, 0, 0], z1=[0, 0, 0, 0],
-                     x2=[-0.75, 0.25, -0.75, 0.25], y2=[-1, -1, 0, 0], z2=[0, 0, 0, 0])
-    assert_positions("t13",
-                     x1=[-1, 0, -1, 0], y1=[-0.5, -0.5, 0.5, 0.5], z1=[0, 0, 0, 0],
-                     x2=[-0.75, 0.25, -0.75, 0.25], y2=[-1, -1, 0, 0], z2=[0, 0, 0, 0])
+    assert_positions(
+        "t11",
+        x1=[-1, -1, 0, -1],
+        y1=[-0.5, -0.5, -0.5, 0.5],
+        z1=[0, 0, 0, 0],
+        x2=[0, -1, 0, 0],
+        y2=[-0.5, 0.5, 0.5, 0.5],
+        z2=[0, 0, 0, 0],
+    )
+    assert_positions(
+        "t22",
+        x1=[-1.25, -0.25],
+        y1=[-1, -1],
+        z1=[0, 0],
+        x2=[-1.25, -0.25],
+        y2=[0, 0],
+        z2=[0, 0],
+    )
+    assert_positions(
+        "t23",
+        x1=[-1.25, -0.25, -1.25, -0.25],
+        y1=[-1, -1, 0, 0],
+        z1=[0, 0, 0, 0],
+        x2=[-0.75, 0.25, -0.75, 0.25],
+        y2=[-1, -1, 0, 0],
+        z2=[0, 0, 0, 0],
+    )
+    assert_positions(
+        "t13",
+        x1=[-1, 0, -1, 0],
+        y1=[-0.5, -0.5, 0.5, 0.5],
+        z1=[0, 0, 0, 0],
+        x2=[-0.75, 0.25, -0.75, 0.25],
+        y2=[-1, -1, 0, 0],
+        z2=[0, 0, 0, 0],
+    )
 
     assert_hoppings("t11", shape=(4,), energy=[1])
-    assert_hoppings("t22", shape=(2, 2, 2), energy=[[3, 0],
-                                                    [0, -3]])
-    assert_hoppings("t23", shape=(4, 2, 3), energy=[[0, 1, 2],
-                                                    [3, 4, 5]])
+    assert_hoppings("t22", shape=(2, 2, 2), energy=[[3, 0], [0, -3]])
+    assert_hoppings("t23", shape=(4, 2, 3), energy=[[0, 1, 2], [3, 4, 5]])
     assert_hoppings("t13", shape=(4, 1, 3), energy=[[11, 12, 13]])
 
     @pb.hopping_energy_modifier
@@ -602,8 +681,7 @@ def test_multiorbital_hoppings():
         elif hop_id == "t1":
             energy *= 3
         elif hop_id == "t22":
-            energy += [[0, 1],
-                       [1, 0]]
+            energy += [[0, 1], [1, 0]]
         elif hop_id == "t23":
             energy += [[1, 0, 0]]
         elif hop_id == "t13":
@@ -619,27 +697,22 @@ def test_multiorbital_hoppings():
     assert_hoppings("t11", shape=(4,), energy=[0])
     assert_hoppings("t1|2", shape=(1,), energy=[6])
     assert_hoppings("t1|3", shape=(1,), energy=[9])
-    assert_hoppings("t22", shape=(2, 2, 2), energy=[[3, 1],
-                                                    [1, -3]])
-    assert_hoppings("t23", shape=(4, 2, 3), energy=[[1, 1, 2],
-                                                    [4, 4, 5]])
+    assert_hoppings("t22", shape=(2, 2, 2), energy=[[3, 1], [1, -3]])
+    assert_hoppings("t23", shape=(4, 2, 3), energy=[[1, 1, 2], [4, 4, 5]])
     assert_hoppings("t13", shape=(4, 1, 3), energy=[[22, 24, 26]])
 
 
 def test_hopping_buffer():
     """The energy passed to hopping modifiers is buffered, but users should not be aware of it"""
+
     def lattice():
         lat = pb.Lattice([1, 0], [0, 1])
 
         lat.add_sublattices(("A", [0, 0], [0, 0, 0, 0]))
-        lat.register_hopping_energies({
-            "t44": [[ 0,  1,  2,  3],
-                    [ 4,  5,  6,  7],
-                    [ 8,  9, 10, 11],
-                    [12, 13, 14, 15]]
-        })
-        lat.add_hoppings(([1, 0], "A", "A", "t44"),
-                         ([0, 1], "A", "A", "t44"))
+        lat.register_hopping_energies(
+            {"t44": [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]]}
+        )
+        lat.add_hoppings(([1, 0], "A", "A", "t44"), ([0, 1], "A", "A", "t44"))
         return lat
 
     capture = {}

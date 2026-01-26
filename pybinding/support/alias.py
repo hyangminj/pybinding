@@ -31,6 +31,7 @@ class AliasArray(np.ndarray):
     >>> list(a2 == "A")
     [True, False, True, True]
     """
+
     def __new__(cls, array, mapping):
         obj = np.asarray(array).view(cls)
         obj.mapping = {SplitName(k): v for k, v in mapping.items()}
@@ -93,17 +94,18 @@ class AliasCSRMatrix(csr_matrix):
     >>> list(m2.data == 'A')
     [True, False, True]
     """
+
     def __init__(self, *args, **kwargs):
-        mapping = kwargs.pop('mapping', {})
+        mapping = kwargs.pop("mapping", {})
         if not mapping:
-            mapping = getattr(args[0], 'mapping', {})
+            mapping = getattr(args[0], "mapping", {})
 
         super().__init__(*args, **kwargs)
         self.data = AliasArray(self.data, mapping)
 
     @property
     def format(self):
-        return 'csr'
+        return "csr"
 
     @format.setter
     def format(self, _):
@@ -120,7 +122,7 @@ class AliasCSRMatrix(csr_matrix):
 
     def __getitem__(self, item):
         result = super().__getitem__(item)
-        if getattr(result, 'format', '') == 'csr':
+        if getattr(result, "format", "") == "csr":
             return AliasCSRMatrix(result, mapping=self.mapping)
         else:
             return result
@@ -164,6 +166,7 @@ class AliasIndex:
     >>> np.allclose(AliasIndex("A", 1, (2, 2)).eye, np.eye(2))
     True
     """
+
     class LazyArray:
         def __init__(self, value, shape):
             self.value = value
@@ -218,6 +221,7 @@ class SplitName(str):
     >>> s != "second"
     True
     """
+
     @property
     def first(self):
         return self.split("|")[0]

@@ -1,6 +1,6 @@
 import time
 
-__all__ = ['tic', 'toc', 'timed', 'pretty_duration']
+__all__ = ["tic", "toc", "timed", "pretty_duration"]
 
 _tic_times = []
 

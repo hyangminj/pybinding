@@ -21,7 +21,9 @@ def _assertdispatch(func):
         if context is not None:
             self.stack.append(context)
 
-        is_pb_savable = any(hasattr(actual, s) for s in ['__getstate__', '__getinitargs__'])
+        is_pb_savable = any(
+            hasattr(actual, s) for s in ["__getstate__", "__getinitargs__"]
+        )
         kind = type(pb.save) if is_pb_savable else actual.__class__
         dispatcher.dispatch(kind)(self, actual, expected)
 
@@ -53,11 +55,15 @@ def _assert_fuzzy_equal(actual, expected, rtol, atol):
 
     actual, expected = map(np.asanyarray, (actual, expected))
     if actual.shape != expected.shape:
-        raise AssertionError("\n".join([
-            "\nFailed on shape mismatch",
-            "actual:   {}".format(actual.shape),
-            "expected: {}".format(expected.shape),
-        ]))
+        raise AssertionError(
+            "\n".join(
+                [
+                    "\nFailed on shape mismatch",
+                    "actual:   {}".format(actual.shape),
+                    "expected: {}".format(expected.shape),
+                ]
+            )
+        )
 
     isclose = np.isclose(actual, expected, rtol, atol)
     if np.all(isclose):
@@ -70,16 +76,25 @@ def _assert_fuzzy_equal(actual, expected, rtol, atol):
         b = expected[notclose]
     else:
         a, b = actual, expected
-    raise AssertionError("\n".join([
-        "\nFailed on {} of {} values: {:.0%}".format(num_failed, actual.size,
-                                                     num_failed / actual.size),
-        " actual:   {}".format(a),
-        " expected: {}".format(b),
-        " indices:  {}".format([idx[0] if idx.size == 1 else list(idx)
-                               for idx in np.argwhere(notclose)]),
-        " abs diff: {}".format(abs(a - b)),
-        " rel diff: {}".format(abs(a - b) / abs(b)),
-    ]))
+    raise AssertionError(
+        "\n".join(
+            [
+                "\nFailed on {} of {} values: {:.0%}".format(
+                    num_failed, actual.size, num_failed / actual.size
+                ),
+                " actual:   {}".format(a),
+                " expected: {}".format(b),
+                " indices:  {}".format(
+                    [
+                        idx[0] if idx.size == 1 else list(idx)
+                        for idx in np.argwhere(notclose)
+                    ]
+                ),
+                " abs diff: {}".format(abs(a - b)),
+                " rel diff: {}".format(abs(a - b) / abs(b)),
+            ]
+        )
+    )
 
 
 class FuzzyEqual:
@@ -87,6 +102,7 @@ class FuzzyEqual:
 
     The `stack` attribute shows the structure depth at a given assert.
     """
+
     def __init__(self, actual, expected, rtol=1e-05, atol=1e-08):
         self.actual = actual
         self.expected = expected
@@ -106,11 +122,11 @@ class FuzzyEqual:
             return True
 
         if self.stack:
-            msg = ''.join(self.stack) + "\n" + msg
+            msg = "".join(self.stack) + "\n" + msg
         raise AssertionError(msg.strip())
 
     def __repr__(self):
-        return ''.join(self.stack)
+        return "".join(self.stack)
 
     @_assertdispatch
     def _assert(self, actual, expected):
@@ -125,13 +141,17 @@ class FuzzyEqual:
 
     @_assert.register(csr_matrix)
     def _(self, actual, expected):
-        for s in ['shape', 'data', 'indices', 'indptr']:
-            self._assert(getattr(actual, s), getattr(expected, s), context=".{}".format(s))
+        for s in ["shape", "data", "indices", "indptr"]:
+            self._assert(
+                getattr(actual, s), getattr(expected, s), context=".{}".format(s)
+            )
 
     @_assert.register(coo_matrix)
     def _(self, actual, expected):
-        for s in ['shape', 'data', 'row', 'col']:
-            self._assert(getattr(actual, s), getattr(expected, s), context=".{}".format(s))
+        for s in ["shape", "data", "row", "col"]:
+            self._assert(
+                getattr(actual, s), getattr(expected, s), context=".{}".format(s)
+            )
 
     @_assert.register(tuple)
     @_assert.register(list)
@@ -154,6 +174,10 @@ class FuzzyEqual:
 
     @_assert.register(type(pb.save))
     def _(self, actual, expected):
-        specials = [s for s in ['__getstate__', '__getinitargs__'] if hasattr(actual, s)]
+        specials = [
+            s for s in ["__getstate__", "__getinitargs__"] if hasattr(actual, s)
+        ]
         for s in specials:
-            self._assert(getattr(actual, s)(), getattr(expected, s)(), context="{}()".format(s))
+            self._assert(
+                getattr(actual, s)(), getattr(expected, s)(), context="{}()".format(s)
+            )

@@ -4,24 +4,29 @@ import numpy as np
 import pybinding as pb
 from pybinding.repository import graphene
 
-solvers = ['arpack']
-if hasattr(pb._cpp, 'FEAST'):
-    solvers.append('feast')
+solvers = ["arpack"]
+if hasattr(pb._cpp, "FEAST"):
+    solvers.append("feast")
 
 models = {
-    'graphene-magnetic_field': {'model': [graphene.monolayer(), pb.rectangle(6),
-                                          graphene.constant_magnetic_field(10)],
-                                'arpack': [30],
-                                'feast': [(-0.1, 0.1), 18]},
+    "graphene-magnetic_field": {
+        "model": [
+            graphene.monolayer(),
+            pb.rectangle(6),
+            graphene.constant_magnetic_field(10),
+        ],
+        "arpack": [30],
+        "feast": [(-0.1, 0.1), 18],
+    },
 }
 
 
-@pytest.fixture(scope='module', ids=list(models.keys()), params=models.values())
+@pytest.fixture(scope="module", ids=list(models.keys()), params=models.values())
 def model_ex(request):
-    return pb.Model(*request.param['model']), request.param
+    return pb.Model(*request.param["model"]), request.param
 
 
-@pytest.fixture(scope='module', params=solvers)
+@pytest.fixture(scope="module", params=solvers)
 def solver(request, model_ex):
     model, solver_cfg = model_ex
     make_solver = getattr(pb.solver, request.param)
@@ -33,8 +38,8 @@ def solver(request, model_ex):
 def test_eigenvalues(solver, baseline, plot_if_fails):
     eig = solver.calc_eigenvalues(map_probability_at=(0, 0))
     expected = baseline(eig)
-    plot_if_fails(eig, expected, 'plot_heatmap')
-    assert pytest.fuzzy_equal(eig, expected, 2.e-2, 1.e-5)
+    plot_if_fails(eig, expected, "plot_heatmap")
+    assert pytest.fuzzy_equal(eig, expected, 2.0e-2, 1.0e-5)
 
 
 def test_dos(solver, baseline, plot_if_fails):
@@ -42,7 +47,7 @@ def test_dos(solver, baseline, plot_if_fails):
     result = solver.calc_dos(energy, 0.01)
 
     expected = result.with_data(baseline(result.data))
-    plot_if_fails(result, expected, 'plot')
+    plot_if_fails(result, expected, "plot")
 
     assert pytest.fuzzy_equal(result, expected, rtol=2e-2, atol=1e-5)
 
@@ -53,11 +58,15 @@ def test_ldos(solver, plot_if_fails):
     broadening = 0.01
     expected = solver.calc_dos(energy, broadening)
 
-    ldos = np.stack([solver.calc_ldos(energy, broadening, position).data
-                     for position in zip(*solver.system.positions)])
+    ldos = np.stack(
+        [
+            solver.calc_ldos(energy, broadening, position).data
+            for position in zip(*solver.system.positions)
+        ]
+    )
     result = expected.with_data(np.sum(ldos, axis=0))
 
-    plot_if_fails(result, expected, 'plot')
+    plot_if_fails(result, expected, "plot")
     assert pytest.fuzzy_equal(result, expected)
 
 
@@ -77,15 +86,18 @@ def test_spatial_ldos(solver, baseline, plot_if_fails):
 def test_lapack(baseline, plot_if_fails):
     model = pb.Model(graphene.monolayer(), pb.translational_symmetry())
     solver = pb.solver.lapack(model)
-    assert pytest.fuzzy_equal(solver.eigenvalues, [-3*abs(graphene.t), 3*abs(graphene.t)])
+    assert pytest.fuzzy_equal(
+        solver.eigenvalues, [-3 * abs(graphene.t), 3 * abs(graphene.t)]
+    )
 
     from math import pi, sqrt
+
     g = [0, 0]
-    k1 = [-4*pi / (3*sqrt(3) * graphene.a_cc), 0]
-    m = [0, 2*pi / (3 * graphene.a_cc)]
-    k2 = [2*pi / (3*sqrt(3) * graphene.a_cc), 2*pi / (3 * graphene.a_cc)]
+    k1 = [-4 * pi / (3 * sqrt(3) * graphene.a_cc), 0]
+    m = [0, 2 * pi / (3 * graphene.a_cc)]
+    k2 = [2 * pi / (3 * sqrt(3) * graphene.a_cc), 2 * pi / (3 * graphene.a_cc)]
 
     bands = solver.calc_bands(k1, g, m, k2, step=3)
     expected = baseline(bands)
-    plot_if_fails(bands, expected, 'plot')
-    assert pytest.fuzzy_equal(bands, expected, 2.e-2, 1.e-6)
+    plot_if_fails(bands, expected, "plot")
+    assert pytest.fuzzy_equal(bands, expected, 2.0e-2, 1.0e-6)

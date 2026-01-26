@@ -87,7 +87,11 @@ jobs:
 
       - name: Install linting tools
         run: |
-          pip install ruff mypy
+          pip install black ruff mypy
+
+      - name: Check formatting with black
+        run: |
+          black --check pybinding tests
 
       - name: Lint with ruff
         run: |

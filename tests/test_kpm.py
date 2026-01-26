@@ -5,16 +5,22 @@ import pybinding as pb
 from pybinding.repository import graphene, group6_tmd
 
 models = {
-    'graphene-pristine': [graphene.monolayer(), pb.rectangle(15)],
-    'graphene-pristine-oversized': [graphene.monolayer(), pb.rectangle(20)],
-    'graphene-const_potential': [graphene.monolayer(), pb.rectangle(15),
-                                 pb.constant_potential(0.5)],
-    'graphene-magnetic_field': [graphene.monolayer(), pb.rectangle(15),
-                                graphene.constant_magnetic_field(1e3)],
+    "graphene-pristine": [graphene.monolayer(), pb.rectangle(15)],
+    "graphene-pristine-oversized": [graphene.monolayer(), pb.rectangle(20)],
+    "graphene-const_potential": [
+        graphene.monolayer(),
+        pb.rectangle(15),
+        pb.constant_potential(0.5),
+    ],
+    "graphene-magnetic_field": [
+        graphene.monolayer(),
+        pb.rectangle(15),
+        graphene.constant_magnetic_field(1e3),
+    ],
 }
 
 
-@pytest.fixture(scope='module', ids=list(models.keys()), params=models.values())
+@pytest.fixture(scope="module", ids=list(models.keys()), params=models.values())
 def model(request):
     return pb.Model(*request.param)
 
@@ -25,23 +31,27 @@ ldos_models = {**models, "mos2": [group6_tmd.monolayer_3band("MoS2"), pb.rectang
 @pytest.mark.parametrize("params", ldos_models.values(), ids=list(ldos_models.keys()))
 def test_ldos(params, baseline, plot_if_fails):
     configurations = [
-        {'matrix_format': "CSR", 'optimal_size': False, 'interleaved': False},
-        {'matrix_format': "CSR", 'optimal_size': True, 'interleaved': False},
-        {'matrix_format': "CSR", 'optimal_size': False, 'interleaved': True},
-        {'matrix_format': "ELL", 'optimal_size': True, 'interleaved': True},
+        {"matrix_format": "CSR", "optimal_size": False, "interleaved": False},
+        {"matrix_format": "CSR", "optimal_size": True, "interleaved": False},
+        {"matrix_format": "CSR", "optimal_size": False, "interleaved": True},
+        {"matrix_format": "ELL", "optimal_size": True, "interleaved": True},
     ]
     model = pb.Model(*params)
 
     kernel = pb.lorentz_kernel()
-    strategies = [pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations]
+    strategies = [
+        pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations
+    ]
 
     energy = np.linspace(0, 2, 25)
-    results = [kpm.calc_ldos(energy, broadening=0.15, position=[0, 0.07], reduce=False)
-               for kpm in strategies]
+    results = [
+        kpm.calc_ldos(energy, broadening=0.15, position=[0, 0.07], reduce=False)
+        for kpm in strategies
+    ]
 
     expected = results[0].with_data(baseline(results[0].data.astype(np.float32)))
     for i in range(len(results)):
-        plot_if_fails(results[i], expected, 'plot', label=i)
+        plot_if_fails(results[i], expected, "plot", label=i)
 
     for result in results:
         assert pytest.fuzzy_equal(result, expected, rtol=1e-3, atol=1e-6)
@@ -81,7 +91,9 @@ def test_moments(model, plot_if_fails):
     with pytest.raises(RuntimeError) as excinfo:
         kpm = pb.kpm(pb.Model(graphene.monolayer()))
         kpm.moments(10, [1j, 2j])
-    assert "Hamiltonian is real, but the given argument 'alpha' is complex" in str(excinfo.value)
+    assert "Hamiltonian is real, but the given argument 'alpha' is complex" in str(
+        excinfo.value
+    )
 
 
 def test_kpm_multiple_indices(model):
@@ -116,16 +128,21 @@ def test_kpm_reuse():
 
 def test_ldos_sublattice():
     """LDOS for A and B sublattices should be antisymmetric for graphene with a mass term"""
-    model = pb.Model(graphene.monolayer(), graphene.hexagon_ac(10), graphene.mass_term(1))
+    model = pb.Model(
+        graphene.monolayer(), graphene.hexagon_ac(10), graphene.mass_term(1)
+    )
     kpm = pb.kpm(model, silent=True)
 
-    a, b = (kpm.calc_ldos(np.linspace(-5, 5, 50), 0.1, [0, 0], sub) for sub in ('A', 'B'))
+    a, b = (
+        kpm.calc_ldos(np.linspace(-5, 5, 50), 0.1, [0, 0], sub) for sub in ("A", "B")
+    )
     assert pytest.fuzzy_equal(a.data, b.data[::-1], rtol=1e-3, atol=1e-6)
 
 
 def test_optimized_hamiltonian():
     """Currently available only in internal interface"""
     from pybinding import _cpp
+
     model = pb.Model(graphene.monolayer(), graphene.hexagon_ac(10))
     h = model.hamiltonian
     oh = _cpp.OptimizedHamiltonian(model.raw_hamiltonian, 0)
@@ -136,58 +153,76 @@ def test_optimized_hamiltonian():
 
 
 dos_models = {
-    'graphene-const_potential': [graphene.monolayer(), pb.rectangle(25),
-                                 pb.constant_potential(0.5)],
-    'graphene-magnetic_field': [graphene.monolayer(), pb.rectangle(25),
-                                graphene.constant_magnetic_field(1e3)],
+    "graphene-const_potential": [
+        graphene.monolayer(),
+        pb.rectangle(25),
+        pb.constant_potential(0.5),
+    ],
+    "graphene-magnetic_field": [
+        graphene.monolayer(),
+        pb.rectangle(25),
+        graphene.constant_magnetic_field(1e3),
+    ],
 }
 
 
 @pytest.mark.parametrize("params", dos_models.values(), ids=list(dos_models.keys()))
 def test_dos(params, baseline, plot_if_fails):
     configurations = [
-        {'matrix_format': "ELL", 'optimal_size': False, 'interleaved': False},
-        {'matrix_format': "ELL", 'optimal_size': True, 'interleaved': True},
+        {"matrix_format": "ELL", "optimal_size": False, "interleaved": False},
+        {"matrix_format": "ELL", "optimal_size": True, "interleaved": True},
     ]
     model = pb.Model(*params)
 
     kernel = pb.lorentz_kernel()
-    strategies = [pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations]
+    strategies = [
+        pb.kpm(model, kernel=kernel, silent=True, **c) for c in configurations
+    ]
 
     energy = np.linspace(0, 2, 25)
     results = [kpm.calc_dos(energy, broadening=0.15) for kpm in strategies]
 
     expected = results[0].with_data(baseline(results[0].data.astype(np.float32)))
     for i in range(len(results)):
-        plot_if_fails(results[i], expected, 'plot', label=i)
+        plot_if_fails(results[i], expected, "plot", label=i)
 
     for result in results:
         assert pytest.fuzzy_equal(result, expected, rtol=1e-3, atol=1e-6)
 
 
 cond_models = {
-    'graphene-const_potential': [graphene.monolayer(), pb.rectangle(20),
-                                 pb.constant_potential(0.5)],
-    'graphene-magnetic_field': [graphene.monolayer(), pb.rectangle(20),
-                                graphene.constant_magnetic_field(1e3)]
+    "graphene-const_potential": [
+        graphene.monolayer(),
+        pb.rectangle(20),
+        pb.constant_potential(0.5),
+    ],
+    "graphene-magnetic_field": [
+        graphene.monolayer(),
+        pb.rectangle(20),
+        graphene.constant_magnetic_field(1e3),
+    ],
 }
 
 
 @pytest.mark.parametrize("params", cond_models.values(), ids=list(cond_models.keys()))
 def test_conductivity(params, baseline, plot_if_fails):
     configurations = [
-        {'matrix_format': "ELL", 'optimal_size': False, 'interleaved': False},
-        {'matrix_format': "ELL", 'optimal_size': True, 'interleaved': True},
+        {"matrix_format": "ELL", "optimal_size": False, "interleaved": False},
+        {"matrix_format": "ELL", "optimal_size": True, "interleaved": True},
     ]
     model = pb.Model(*params)
 
     kernel = pb.lorentz_kernel()
-    strategies = [pb.kpm(model, energy_range=[-9, 9], kernel=kernel, silent=True, **c)
-                  for c in configurations]
+    strategies = [
+        pb.kpm(model, energy_range=[-9, 9], kernel=kernel, silent=True, **c)
+        for c in configurations
+    ]
 
     energy = np.linspace(-2, 2, 25)
-    results = [kpm.calc_conductivity(energy, broadening=0.5, temperature=0, num_points=200)
-               for kpm in strategies]
+    results = [
+        kpm.calc_conductivity(energy, broadening=0.5, temperature=0, num_points=200)
+        for kpm in strategies
+    ]
 
     expected = results[0].with_data(baseline(results[0].data.astype(np.float32)))
     for i in range(len(results)):

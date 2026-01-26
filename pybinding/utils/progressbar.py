@@ -7,20 +7,23 @@ import sys
 def percentage(template="{:3.0%}"):
     def widget(pbar):
         return template.format(pbar.percent)
+
     return widget
 
 
-def bar(marker='/', left='[', right=']', fill=' '):
+def bar(marker="/", left="[", right="]", fill=" "):
     def widget(pbar, width):
         width -= len(left) + len(right)
         marked = marker * int(pbar.percent * width)
         return "{}{}{}".format(left, marked.ljust(width, fill), right)
+
     return widget
 
 
 def elapsed(template="Elapsed: {}"):
     def widget(pbar):
         return template.format(datetime.timedelta(seconds=int(pbar.elapsed_seconds)))
+
     return widget
 
 
@@ -31,11 +34,12 @@ def eta(template="ETA: {}"):
         else:
             remaining = pbar.elapsed_seconds * (1 / pbar.percent - 1)
             return template.format(datetime.timedelta(seconds=int(remaining)))
+
     return widget
 
 
 class StdCapture:
-    def __init__(self, stream_name='stdout'):
+    def __init__(self, stream_name="stdout"):
         self.stream_name = stream_name
         self._old_stream = getattr(sys, stream_name)
 
@@ -68,7 +72,7 @@ class StreamOutput:
         self.stream.flush()
 
     def write_pbar(self, line):
-        self.stream.write('\r' + line)
+        self.stream.write("\r" + line)
         self.stream.flush()
 
     def stop(self):
@@ -77,11 +81,11 @@ class StreamOutput:
 
 class FileOutput:
     def __init__(self, filename):
-        self.file = open(filename, 'w')
+        self.file = open(filename, "w")
 
     def start(self, width):
         self.file.seek(0, 0)
-        self.file.write(' ' * width + '\n')
+        self.file.write(" " * width + "\n")
         self.file.flush()
         self.file.seek(0, os.SEEK_END)
 
@@ -93,7 +97,7 @@ class FileOutput:
 
     def write_pbar(self, line):
         self.file.seek(0, 0)
-        self.file.write(line + '\n')
+        self.file.write(line + "\n")
         self.file.flush()
         self.file.seek(0, os.SEEK_END)
 
@@ -116,7 +120,7 @@ class ProgressBar:
         if filename:
             self.outputs.append(FileOutput(filename))
 
-        self.captures = [StdCapture('stdout'), StdCapture('stderr')]
+        self.captures = [StdCapture("stdout"), StdCapture("stderr")]
 
         self.value = 0
         self.running = False
@@ -125,7 +129,7 @@ class ProgressBar:
 
     @staticmethod
     def default_widgets():
-        return ['Progress ', percentage(), ' ', bar(), ' ', elapsed(), ' / ', eta()]
+        return ["Progress ", percentage(), " ", bar(), " ", elapsed(), " / ", eta()]
 
     @property
     def percent(self):
@@ -154,7 +158,9 @@ class ProgressBar:
 
         semi_formatted_widgets = [format_fixed_size(w) for w in self.widgets]
         num_remaining = sum(callable(w) for w in semi_formatted_widgets)
-        width_formatted = sum(len(w) if not callable(w) else 0 for w in semi_formatted_widgets)
+        width_formatted = sum(
+            len(w) if not callable(w) else 0 for w in semi_formatted_widgets
+        )
         width_remaining = self.width - width_formatted
 
         def format_variable_size(widget):

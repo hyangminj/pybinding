@@ -64,11 +64,11 @@ FetchContent_MakeAvailable(fmt)
 # Using master branch (post-v2.1) to fix C++17 compilation issues with modern GCC/Clang
 # See: https://github.com/p12tic/libsimdpp/issues/140
 # Don't use MakeAvailable because libsimdpp's CMakeLists.txt requires CMake < 3.5
+# Using URL download instead of Git to avoid shallow clone issues with specific commits
 FetchContent_Declare(
     libsimdpp
-    GIT_REPOSITORY https://github.com/p12tic/libsimdpp.git
-    GIT_TAG 55860b5bab010a0997bb0e4e37a4a171573e34ff  # master branch, fixes C++17 type conversion
-    GIT_SHALLOW TRUE
+    URL https://github.com/p12tic/libsimdpp/archive/55860b5bab010a0997bb0e4e37a4a171573e34ff.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_GetProperties(libsimdpp)
 if(NOT libsimdpp_POPULATED)

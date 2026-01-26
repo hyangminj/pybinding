@@ -1,13 +1,20 @@
 import inspect
 from collections import OrderedDict
 
-__all__ = ['CallSignature', 'get_call_signature']
+__all__ = ["CallSignature", "get_call_signature"]
 
 
 class CallSignature:
     """Holds a function and the arguments it was called with"""
-    def __init__(self, function: callable, positional: OrderedDict,
-                 args: tuple, keyword_only: OrderedDict, kwargs: dict):
+
+    def __init__(
+        self,
+        function: callable,
+        positional: OrderedDict,
+        args: tuple,
+        keyword_only: OrderedDict,
+        kwargs: dict,
+    ):
         self.positional = positional
         self.args = args
         self.keyword_only = keyword_only
@@ -27,10 +34,14 @@ class CallSignature:
         if self.args:
             positional = [func(v) for k, v in self.positional.items()]
         else:
-            positional = ["{}={}".format(k, func(v)) for k, v in self.positional.items()]
+            positional = [
+                "{}={}".format(k, func(v)) for k, v in self.positional.items()
+            ]
 
         args = [func(v) for v in self.args]
-        keywords_only = ["{}={}".format(k, func(v)) for k, v in self.keyword_only.items()]
+        keywords_only = [
+            "{}={}".format(k, func(v)) for k, v in self.keyword_only.items()
+        ]
         kwargs = ["{}={}".format(k, func(v)) for k, v in self.kwargs.items()]
 
         return ", ".join(positional + args + keywords_only + kwargs)
@@ -54,6 +65,7 @@ def _find_callable(name, frame):
             return func
 
     import gc  # try brute force
+
     for obj in gc.get_objects():
         if inspect.isfunction(obj) and obj.__code__ is frame.f_code:
             return obj
@@ -102,21 +114,29 @@ def get_call_signature(up=0):
     except:
         raise IndexError("Stack frame out of range")
 
-    if func_name == '<module>':
+    if func_name == "<module>":
         raise IndexError("Can't inspect a module")
 
     _, args_name, kwargs_name, frame_locals = inspect.getargvalues(frame)
     function = _find_callable(func_name, frame)
     params = inspect.signature(function).parameters
 
-    positional = OrderedDict([(name, frame_locals[name])
-                              for name, param in params.items()
-                              if param.kind == param.POSITIONAL_OR_KEYWORD])
+    positional = OrderedDict(
+        [
+            (name, frame_locals[name])
+            for name, param in params.items()
+            if param.kind == param.POSITIONAL_OR_KEYWORD
+        ]
+    )
     args = frame_locals.get(args_name, ())
 
-    keyword_only = OrderedDict([(name, frame_locals[name])
-                                for name, param in params.items()
-                                if param.kind == param.KEYWORD_ONLY])
+    keyword_only = OrderedDict(
+        [
+            (name, frame_locals[name])
+            for name, param in params.items()
+            if param.kind == param.KEYWORD_ONLY
+        ]
+    )
     kwargs = frame_locals.get(kwargs_name, {})
 
     return CallSignature(function, positional, args, keyword_only, kwargs)

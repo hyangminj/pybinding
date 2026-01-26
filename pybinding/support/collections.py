@@ -12,9 +12,11 @@ class CircleCollection(Collection):
     like a much faster version of a `PatchCollection` of `Circle`.
     The implementation is similar to `EllipseCollection`.
     """
+
     def __init__(self, radius, **kwargs):
         super().__init__(**kwargs)
         from matplotlib import path, transforms
+
         self.radius = np.atleast_1d(radius)
         self._paths = [path.Path.unit_circle()]
         self.set_transform(transforms.IdentityTransform())
@@ -34,7 +36,7 @@ class CircleCollection(Collection):
 
 
 class Circle3DCollection(CircleCollection):
-    def __init__(self, radius, zs=0, zdir='z', depthshade=True, **kwargs):
+    def __init__(self, radius, zs=0, zdir="z", depthshade=True, **kwargs):
         super().__init__(radius, **kwargs)
         self._depthshade = depthshade
         self.set_3d_properties(zs, zdir)
@@ -56,6 +58,7 @@ class Circle3DCollection(CircleCollection):
             ys = []
 
         from mpl_toolkits.mplot3d.art3d import juggle_axes
+
         self._offsets3d = juggle_axes(xs, ys, np.atleast_1d(zs), zdir)
         self._facecolor3d = self.get_facecolor()
         self._edgecolor3d = self.get_edgecolor()

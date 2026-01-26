@@ -2,6 +2,7 @@
 
 Note that energy is expressed in units of eV.
 """
+
 from math import pi
 import numpy as np
 
@@ -13,12 +14,9 @@ phi0 = 2 * pi * hbar  #: [V*s] magnetic quantum
 
 
 class Pauli:
-    x = np.array([[0, 1],
-                  [1, 0]])
-    y = np.array([[0, -1j],
-                  [1j,  0]])
-    z = np.array([[1,  0],
-                  [0, -1]])
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    z = np.array([[1, 0], [0, -1]])
 
     def __repr__(self):
         return "x: [[0, 1], [1, 0]], y: [[0, -1j], [1j, 0]], z: [[1, 0], [0, -1]]"

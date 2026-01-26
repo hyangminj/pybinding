@@ -2,11 +2,12 @@
 
 Deprecated: use the chebyshev module instead
 """
+
 import warnings
 from . import chebyshev
 from .support.deprecated import LoudDeprecationWarning
 
-__all__ = ['Greens', 'kpm', 'kpm_cuda']
+__all__ = ["Greens", "kpm", "kpm_cuda"]
 
 Greens = chebyshev.KPM
 

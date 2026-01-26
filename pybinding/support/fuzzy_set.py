@@ -1,11 +1,11 @@
 import copy
 import numpy as np
 
-__all__ = ['FuzzySet']
+__all__ = ["FuzzySet"]
 
 
 class FuzzySet:
-    def __init__(self, iterable=None, rtol=1.e-3, atol=1.e-5):
+    def __init__(self, iterable=None, rtol=1.0e-3, atol=1.0e-5):
         self.data = []
         self.rtol = rtol
         self.atol = atol
@@ -21,7 +21,9 @@ class FuzzySet:
         return len(self.data)
 
     def __contains__(self, item):
-        return any(np.allclose(item, x, rtol=self.rtol, atol=self.atol) for x in self.data)
+        return any(
+            np.allclose(item, x, rtol=self.rtol, atol=self.atol) for x in self.data
+        )
 
     def __iadd__(self, other):
         for item in other:

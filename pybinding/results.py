@@ -3,6 +3,7 @@
 Result objects hold computed data and offer postprocessing and plotting functions
 which are specifically adapted to the nature of the stored data.
 """
+
 from copy import copy
 
 import numpy as np
@@ -13,8 +14,18 @@ from .utils import with_defaults, x_pi
 from .support.pickle import pickleable, save, load
 from .support.structure import Positions, AbstractSites, Sites, Hoppings
 
-__all__ = ['Bands', 'Eigenvalues', 'NDSweep', 'Series', 'SpatialMap', 'StructureMap',
-           'Sweep', 'make_path', 'save', 'load']
+__all__ = [
+    "Bands",
+    "Eigenvalues",
+    "NDSweep",
+    "Series",
+    "SpatialMap",
+    "StructureMap",
+    "Sweep",
+    "make_path",
+    "save",
+    "load",
+]
 
 
 def _make_crop_indices(obj, limits):
@@ -35,6 +46,7 @@ class Path(np.ndarray):
     point_indices : List[int]
         Indices of the significant points along the path. Minimum 2: start and end.
     """
+
     def __new__(cls, array, point_indices):
         obj = np.asarray(array).view(cls)
         assert len(point_indices) >= 2
@@ -45,7 +57,7 @@ class Path(np.ndarray):
         if obj is None:
             return
         default_indices = [0, obj.shape[0] - 1] if len(obj.shape) >= 1 else []
-        self.point_indices = getattr(obj, 'point_indices', default_indices)
+        self.point_indices = getattr(obj, "point_indices", default_indices)
 
     def __reduce__(self):
         r = super().__reduce__()
@@ -102,11 +114,19 @@ class Path(np.ndarray):
             Forwarded to :func:`~matplotlib.pyplot.quiver`.
         """
         ax = plt.gca()
-        ax.set_aspect('equal')
+        ax.set_aspect("equal")
 
-        default_color = pltutils.get_palette('Set1')[1]
-        kwargs = with_defaults(kwargs, scale_units='xy', angles='xy', scale=1, zorder=2,
-                               lw=1.5, color=default_color, edgecolor=default_color)
+        default_color = pltutils.get_palette("Set1")[1]
+        kwargs = with_defaults(
+            kwargs,
+            scale_units="xy",
+            angles="xy",
+            scale=1,
+            zorder=2,
+            lw=1.5,
+            color=default_color,
+            edgecolor=default_color,
+        )
 
         x, y = map(np.array, zip(*self.points))
         plt.quiver(x[:-1], y[:-1], np.diff(x), np.diff(y), **kwargs)
@@ -118,8 +138,14 @@ class Path(np.ndarray):
         if point_labels:
             for k_point, label in zip(self.points, point_labels):
                 ha, va = pltutils.align(*(-k_point))
-                pltutils.annotate_box(label, k_point * 1.05, fontsize='large',
-                                      ha=ha, va=va, bbox=dict(lw=0))
+                pltutils.annotate_box(
+                    label,
+                    k_point * 1.05,
+                    fontsize="large",
+                    ha=ha,
+                    va=va,
+                    bbox=dict(lw=0),
+                )
 
 
 def make_path(k0, k1, *ks, step=0.1):
@@ -149,8 +175,12 @@ def make_path(k0, k1, *ks, step=0.1):
     for k_start, k_end in zip(k_points[:-1], k_points[1:]):
         num_steps = int(np.linalg.norm(k_end - k_start) // step)
         # k_path.shape == num_steps, k_space_dimensions
-        k_path = np.array([np.linspace(s, e, num_steps, endpoint=False)
-                           for s, e in zip(k_start, k_end)]).T
+        k_path = np.array(
+            [
+                np.linspace(s, e, num_steps, endpoint=False)
+                for s, e in zip(k_start, k_end)
+            ]
+        ).T
         k_paths.append(k_path)
         point_indices.append(point_indices[-1] + num_steps)
     k_paths.append(k_points[-1])
@@ -173,6 +203,7 @@ class Series:
     labels : dict
         Plot labels: 'variable', 'data', 'title' and 'columns'.
     """
+
     def __init__(self, variable, data, labels=None):
         self.variable = np.atleast_1d(variable)
         self.data = np.atleast_1d(data)
@@ -283,10 +314,10 @@ class SpatialMap:
         return result
 
     def save_txt(self, filename):
-        with open(filename + '.dat', 'w') as file:
-            file.write('# {:12}{:13}{:13}\n'.format('x(nm)', 'y(nm)', 'data'))
+        with open(filename + ".dat", "w") as file:
+            file.write("# {:12}{:13}{:13}\n".format("x(nm)", "y(nm)", "data"))
             for x, y, d in zip(self.x, self.y, self.data):
-                file.write(("{:13.5e}" * 3 + '\n').format(x, y, d))
+                file.write(("{:13.5e}" * 3 + "\n").format(x, y, d))
 
     def __getitem__(self, idx):
         """Same rules as numpy indexing"""
@@ -322,17 +353,19 @@ class SpatialMap:
         data = np.empty_like(self.data)
         for i in range(len(data)):
             idx = np.abs(r - r[i]) < sigma
-            data[i] = np.sum(self.data[idx] * np.exp(-0.5 * ((r[i] - r[idx]) / sigma)**2))
-            data[i] /= np.sum(np.exp(-0.5 * ((r[i] - r[idx]) / sigma)**2))
+            data[i] = np.sum(
+                self.data[idx] * np.exp(-0.5 * ((r[i] - r[idx]) / sigma) ** 2)
+            )
+            data[i] /= np.sum(np.exp(-0.5 * ((r[i] - r[idx]) / sigma) ** 2))
 
         self._data = data
 
     @staticmethod
     def _decorate_plot():
         ax = plt.gca()
-        ax.set_aspect('equal')
-        ax.set_xlabel('x (nm)')
-        ax.set_ylabel('y (nm)')
+        ax.set_aspect("equal")
+        ax.set_xlabel("x (nm)")
+        ax.set_ylabel("y (nm)")
         pltutils.despine(trim=True)
 
     def plot_pcolor(self, **kwargs):
@@ -344,7 +377,7 @@ class SpatialMap:
             Forwarded to :func:`~matplotlib.pyplot.tripcolor`.
         """
         x, y, _ = self.positions
-        kwargs = with_defaults(kwargs, shading='gouraud', rasterized=True)
+        kwargs = with_defaults(kwargs, shading="gouraud", rasterized=True)
         pcolor = plt.tripcolor(x, y, self.data, **kwargs)
         self._decorate_plot()
         return pcolor
@@ -411,8 +444,12 @@ class StructureMap(SpatialMap):
         """Same rules as numpy indexing"""
         if hasattr(idx, "contains"):
             idx = idx.contains(*self.positions)  # got a Shape object -> evaluate it
-        return self.__class__(self.data[idx], self._sites[idx], self._hoppings[idx],
-                              [b[idx] for b in self._boundaries])
+        return self.__class__(
+            self.data[idx],
+            self._sites[idx],
+            self._hoppings[idx],
+            [b[idx] for b in self._boundaries],
+        )
 
     def with_data(self, data) -> "StructureMap":
         """Return a copy of this object with different data mapped to the sites"""
@@ -420,7 +457,7 @@ class StructureMap(SpatialMap):
         result._data = data
         return result
 
-    def plot(self, cmap='YlGnBu', site_radius=(0.03, 0.05), num_periods=1, **kwargs):
+    def plot(self, cmap="YlGnBu", site_radius=(0.03, 0.05), num_periods=1, **kwargs):
         """Plot the spatial structure with a colormap of :attr:`data` at the lattice sites
 
         Both the site size and color are used to display the data.
@@ -437,8 +474,13 @@ class StructureMap(SpatialMap):
         **kwargs
             Additional plot arguments as specified in :func:`.structure_plot_properties`.
         """
-        from .system import (plot_sites, plot_hoppings, plot_periodic_boundaries,
-                             structure_plot_properties, decorate_structure_plot)
+        from .system import (
+            plot_sites,
+            plot_hoppings,
+            plot_periodic_boundaries,
+            structure_plot_properties,
+            decorate_structure_plot,
+        )
 
         def to_radii(data):
             if not isinstance(site_radius, (tuple, list)):
@@ -453,16 +495,19 @@ class StructureMap(SpatialMap):
                 return site_radius[1]
 
         props = structure_plot_properties(**kwargs)
-        props['site'] = with_defaults(props['site'], radius=to_radii(self.data), cmap=cmap)
-        collection = plot_sites(self.positions, self.data, **props['site'])
+        props["site"] = with_defaults(
+            props["site"], radius=to_radii(self.data), cmap=cmap
+        )
+        collection = plot_sites(self.positions, self.data, **props["site"])
 
         hop = self.hoppings.tocoo()
-        props['hopping'] = with_defaults(props['hopping'], color='#bbbbbb')
-        plot_hoppings(self.positions, hop, **props['hopping'])
+        props["hopping"] = with_defaults(props["hopping"], color="#bbbbbb")
+        plot_hoppings(self.positions, hop, **props["hopping"])
 
-        props['site']['alpha'] = props['hopping']['alpha'] = 0.5
-        plot_periodic_boundaries(self.positions, hop, self.boundaries, self.data,
-                                 num_periods, **props)
+        props["site"]["alpha"] = props["hopping"]["alpha"] = 0.5
+        plot_periodic_boundaries(
+            self.positions, hop, self.boundaries, self.data, num_periods, **props
+        )
 
         decorate_structure_plot(**props)
 
@@ -474,10 +519,11 @@ class StructureMap(SpatialMap):
 @pickleable
 class Structure:
     """Holds and plots the structure of a tight-binding system
-    
-    Similar to :class:`StructureMap`, but only holds the structure without 
+
+    Similar to :class:`StructureMap`, but only holds the structure without
     mapping to any actual data.
     """
+
     def __init__(self, sites, hoppings, boundaries=()):
         self._sites = sites
         self._hoppings = hoppings
@@ -538,8 +584,9 @@ class Structure:
         if hasattr(idx, "contains"):
             idx = idx.contains(*self.positions)  # got a Shape object -> evaluate it
 
-        sliced = Structure(self._sites[idx], self._hoppings[idx],
-                           [b[idx] for b in self._boundaries])
+        sliced = Structure(
+            self._sites[idx], self._hoppings[idx], [b[idx] for b in self._boundaries]
+        )
         if hasattr(self, "lattice"):
             sliced.lattice = self.lattice
         return sliced
@@ -590,17 +637,28 @@ class Structure:
         **kwargs
             Additional plot arguments as specified in :func:`.structure_plot_properties`.
         """
-        from .system import (plot_sites, plot_hoppings, plot_periodic_boundaries,
-                             structure_plot_properties, decorate_structure_plot)
+        from .system import (
+            plot_sites,
+            plot_hoppings,
+            plot_periodic_boundaries,
+            structure_plot_properties,
+            decorate_structure_plot,
+        )
 
         props = structure_plot_properties(**kwargs)
         if hasattr(self, "lattice"):
             props["site"].setdefault("radius", self.lattice.site_radius_for_plot())
 
-        plot_hoppings(self.positions, self._hoppings, **props['hopping'])
-        plot_sites(self.positions, self.sublattices, **props['site'])
-        plot_periodic_boundaries(self.positions, self._hoppings, self._boundaries,
-                                 self.sublattices, num_periods, **props)
+        plot_hoppings(self.positions, self._hoppings, **props["hopping"])
+        plot_sites(self.positions, self.sublattices, **props["site"])
+        plot_periodic_boundaries(
+            self.positions,
+            self._hoppings,
+            self._boundaries,
+            self.sublattices,
+            num_periods,
+            **props,
+        )
 
         decorate_structure_plot(**props)
 
@@ -614,6 +672,7 @@ class Eigenvalues:
     values : np.ndarray
     probability : np.ndarray
     """
+
     def __init__(self, eigenvalues, probability=None):
         self.values = np.atleast_1d(eigenvalues)
         self.probability = np.atleast_1d(probability)
@@ -628,19 +687,25 @@ class Eigenvalues:
             # draw lines between degenerate states
             from .solver import Solver
             from matplotlib.collections import LineCollection
+
             pairs = ((s[0], s[-1]) for s in Solver.find_degenerate_states(self.values))
             lines = [[(i, self.values[i]) for i in pair] for pair in pairs]
-            plt.gca().add_collection(LineCollection(lines, color='black', alpha=0.5))
+            plt.gca().add_collection(LineCollection(lines, color="black", alpha=0.5))
 
         if number_states:
             # draw a number next to each state
             for index, energy in enumerate(self.values):
-                pltutils.annotate_box(index, (index, energy), fontsize='x-small',
-                                      xytext=(0, -10), textcoords='offset points')
+                pltutils.annotate_box(
+                    index,
+                    (index, energy),
+                    fontsize="x-small",
+                    xytext=(0, -10),
+                    textcoords="offset points",
+                )
             margin = 0.25
 
-        plt.xlabel('state')
-        plt.ylabel('E (eV)')
+        plt.xlabel("state")
+        plt.ylabel("E (eV)")
         plt.xlim(-1, len(self.values))
         pltutils.despine(trim=True)
         pltutils.add_margin(margin, axis="y")
@@ -657,10 +722,16 @@ class Eigenvalues:
         **kwargs
             Forwarded to plt.scatter().
         """
-        plt.scatter(self.indices, self.values, **with_defaults(kwargs, c='#377ec8', s=15, lw=0.1))
+        plt.scatter(
+            self.indices,
+            self.values,
+            **with_defaults(kwargs, c="#377ec8", s=15, lw=0.1),
+        )
         self._decorate_plot(mark_degenerate, show_indices)
 
-    def plot_heatmap(self, size=(7, 77), mark_degenerate=True, show_indices=False, **kwargs):
+    def plot_heatmap(
+        self, size=(7, 77), mark_degenerate=True, show_indices=False, **kwargs
+    ):
         """Eigenvalues scatter plot with a heatmap indicating probability density
 
         Parameters
@@ -679,13 +750,24 @@ class Eigenvalues:
 
         # higher probability states should be drawn above lower ones
         idx = np.argsort(self.probability)
-        indices, energy, probability = (v[idx] for v in
-                                        (self.indices, self.values, self.probability))
+        indices, energy, probability = (
+            v[idx] for v in (self.indices, self.values, self.probability)
+        )
 
         scatter_point_sizes = size[0] + size[1] * probability / probability.max()
-        plt.scatter(indices, energy, **with_defaults(kwargs, cmap='YlOrRd', lw=0.2, alpha=0.85,
-                                                     c=probability, s=scatter_point_sizes,
-                                                     edgecolor="k"))
+        plt.scatter(
+            indices,
+            energy,
+            **with_defaults(
+                kwargs,
+                cmap="YlOrRd",
+                lw=0.2,
+                alpha=0.85,
+                c=probability,
+                s=scatter_point_sizes,
+                edgecolor="k",
+            ),
+        )
 
         self._decorate_plot(mark_degenerate, show_indices)
         return self.probability.max()
@@ -703,6 +785,7 @@ class Bands:
     energy : array_like
         Energy values for the bands along the path in k-space.
     """
+
     def __init__(self, k_path, energy):
         self.k_path = np.atleast_1d(k_path).view(Path)
         self.energy = np.atleast_1d(energy)
@@ -714,7 +797,7 @@ class Bands:
             k_point = np.atleast_1d(k_point)
             values = map(x_pi, k_point)
             fmt = "[{}]" if len(k_point) > 1 else "{}"
-            names.append(fmt.format(', '.join(values)))
+            names.append(fmt.format(", ".join(values)))
         return names
 
     @property
@@ -731,7 +814,7 @@ class Bands:
         **kwargs
             Forwarded to `plt.plot()`.
         """
-        default_color = pltutils.get_palette('Set1')[1]
+        default_color = pltutils.get_palette("Set1")[1]
         default_linewidth = np.clip(5 / self.num_bands, 1.1, 1.6)
         kwargs = with_defaults(kwargs, color=default_color, lw=default_linewidth)
 
@@ -739,8 +822,8 @@ class Bands:
         plt.plot(k_space, self.energy, **kwargs)
 
         plt.xlim(k_space.min(), k_space.max())
-        plt.xlabel('k-space')
-        plt.ylabel('E (eV)')
+        plt.xlabel("k-space")
+        plt.ylabel("E (eV)")
         pltutils.add_margin()
         pltutils.despine(trim=True)
 
@@ -785,6 +868,7 @@ class Sweep:
     tags : dict
         Any additional user defined variables.
     """
+
     def __init__(self, x, y, data, labels=None, tags=None):
         self.x = np.atleast_1d(x)
         self.y = np.atleast_1d(y)
@@ -808,7 +892,7 @@ class Sweep:
     @property
     def _plain_labels(self):
         """Labels with latex symbols stripped out"""
-        trans = str.maketrans('', '', '$\\')
+        trans = str.maketrans("", "", "$\\")
         return {k: v.translate(trans) for k, v in self.labels.items()}
 
     def _xy_grids(self):
@@ -824,7 +908,7 @@ class Sweep:
         ----------
         filename : str
         """
-        with open(filename, 'w') as file:
+        with open(filename, "w") as file:
             file.write("#{x:>11} {y:>12} {data:>12}\n".format(**self._plain_labels))
 
             xgrid, ygrid = self._xy_grids()
@@ -846,11 +930,21 @@ class Sweep:
         -------
         :class:`~pybinding.Sweep`
         """
-        idx_x = np.logical_and(x[0] <= self.x, self.x <= x[1]) if x else np.arange(self.x.size)
-        idx_y = np.logical_and(y[0] <= self.y, self.y <= y[1]) if y else np.arange(self.y.size)
-        return self._with_data(self.x[idx_x], self.y[idx_y], self.data[np.ix_(idx_x, idx_y)])
+        idx_x = (
+            np.logical_and(x[0] <= self.x, self.x <= x[1])
+            if x
+            else np.arange(self.x.size)
+        )
+        idx_y = (
+            np.logical_and(y[0] <= self.y, self.y <= y[1])
+            if y
+            else np.arange(self.y.size)
+        )
+        return self._with_data(
+            self.x[idx_x], self.y[idx_y], self.data[np.ix_(idx_x, idx_y)]
+        )
 
-    def mirrored(self, axis='x'):
+    def mirrored(self, axis="x"):
         """Return a copy with data mirrored in around specified axis
 
          Only makes sense if the axis starts at 0.
@@ -863,18 +957,18 @@ class Sweep:
         -------
         :class:`~pybinding.Sweep`
         """
-        if axis == 'x':
+        if axis == "x":
             x = np.concatenate((-self.x[::-1], self.x[1:]))
             data = np.vstack((self.data[::-1], self.data[1:]))
             return self._with_data(x, self.y, data)
-        elif axis == 'y':
+        elif axis == "y":
             y = np.concatenate((-self.y[::-1], self.y[1:]))
             data = np.hstack((self.data[:, ::-1], self.data[:, 1:]))
             return self._with_data(self.x, y, data)
         else:
             RuntimeError("Invalid axis")
 
-    def interpolated(self, mul=None, size=None, kind='linear'):
+    def interpolated(self, mul=None, size=None, kind="linear"):
         """Return a copy with interpolate data using :class:`scipy.interpolate.interp1d`
 
         Call with `mul=2` to double the size of the x-axis and interpolate data to match.
@@ -897,6 +991,7 @@ class Sweep:
             return self
 
         from scipy.interpolate import interp1d
+
         x, y, data = self.x, self.y, self.data
 
         if mul:
@@ -924,7 +1019,7 @@ class Sweep:
 
         return self._with_data(x, y, data)
 
-    def _convolved(self, sigma, axis='x'):
+    def _convolved(self, sigma, axis="x"):
         """Return a copy where the data is convolved with a Gaussian function
 
         Parameters
@@ -937,22 +1032,23 @@ class Sweep:
         -------
         :class:`~pybinding.Sweep`
         """
+
         def convolve(v, data0):
             v0 = v[v.size // 2]
-            gaussian = np.exp(-0.5 * ((v - v0) / sigma)**2)
+            gaussian = np.exp(-0.5 * ((v - v0) / sigma) ** 2)
             gaussian /= gaussian.sum()
 
             extend = 10  # TODO: rethink this
             data1 = np.concatenate((data0[extend::-1], data0, data0[:-extend:-1]))
-            data1 = np.convolve(data1, gaussian, 'same')
+            data1 = np.convolve(data1, gaussian, "same")
             return data1[extend:-extend]
 
         x, y, data = self.x, self.y, self.data.copy()
 
-        if 'x' in axis:
+        if "x" in axis:
             for i in range(y.size):
                 data[:, i] = convolve(x, data[:, i])
-        if 'y' in axis:
+        if "y" in axis:
             for i in range(x.size):
                 data[i, :] = convolve(y, data[i, :])
 
@@ -966,32 +1062,36 @@ class Sweep:
         **kwargs
             Forwarded to :func:`matplotlib.pyplot.pcolormesh`.
         """
-        mesh = plt.pcolormesh(self.x, self.y, self.data.T,
-                              **with_defaults(kwargs, cmap='RdYlBu_r', rasterized=True))
+        mesh = plt.pcolormesh(
+            self.x,
+            self.y,
+            self.data.T,
+            **with_defaults(kwargs, cmap="RdYlBu_r", rasterized=True),
+        )
         plt.xlim(self.x.min(), self.x.max())
         plt.ylim(self.y.min(), self.y.max())
 
-        plt.title(self.labels['title'])
-        plt.xlabel(self.labels['x'])
-        plt.ylabel(self.labels['y'])
+        plt.title(self.labels["title"])
+        plt.xlabel(self.labels["x"])
+        plt.ylabel(self.labels["y"])
 
         return mesh
 
     def colorbar(self, **kwargs):
         """Draw a colorbar with the label of :attr:`Sweep.data`"""
-        return pltutils.colorbar(**with_defaults(kwargs, label=self.labels['data']))
+        return pltutils.colorbar(**with_defaults(kwargs, label=self.labels["data"]))
 
     def _plot_slice(self, axis, x, y, value, **kwargs):
         plt.plot(x, y, **kwargs)
 
-        split = self.labels[axis].split(' ', 1)
+        split = self.labels[axis].split(" ", 1)
         label = split[0]
-        unit = '' if len(split) == 1 else split[1].strip('()')
-        plt.title('{}, {} = {:.2g} {}'.format(self.labels['title'], label, value, unit))
+        unit = "" if len(split) == 1 else split[1].strip("()")
+        plt.title("{}, {} = {:.2g} {}".format(self.labels["title"], label, value, unit))
 
         plt.xlim(x.min(), x.max())
-        plt.xlabel(self.labels['x' if axis == 'y' else 'y'])
-        plt.ylabel(self.labels['data'])
+        plt.xlabel(self.labels["x" if axis == "y" else "y"])
+        plt.ylabel(self.labels["data"])
         pltutils.despine()
 
     def _slice_x(self, x):
@@ -1016,11 +1116,11 @@ class Sweep:
 
     def plot_slice_x(self, x, **kwargs):
         z, value = self._slice_x(x)
-        self._plot_slice('x', self.y, z, value, **kwargs)
+        self._plot_slice("x", self.y, z, value, **kwargs)
 
     def plot_slice_y(self, y, **kwargs):
         z, value = self._slice_y(y)
-        self._plot_slice('y', self.x, z, value, **kwargs)
+        self._plot_slice("y", self.x, z, value, **kwargs)
 
 
 @pickleable
@@ -1038,13 +1138,14 @@ class NDSweep:
     tags : dict
         Any additional user defined variables.
     """
+
     def __init__(self, variables, data, labels=None, tags=None):
         self.variables = variables
         self.data = np.reshape(data, [len(v) for v in variables])
 
         self.labels = with_defaults(labels, title="", axes=[], data="data")
         # alias the first 3 axes to x, y, z for compatibility with Sweep labels
-        for axis, label in zip('xyz', self.labels['axes']):
+        for axis, label in zip("xyz", self.labels["axes"]):
             self.labels[axis] = label
 
         self.tags = tags

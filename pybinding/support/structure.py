@@ -17,6 +17,7 @@ def _slice_csr_matrix(csr, idx):
     m.data -= 1
     return m
 
+
 Positions = namedtuple("Positions", "x y z")
 Positions.__doc__ = """
 Named tuple of arrays
@@ -49,7 +50,7 @@ class AbstractSites(metaclass=ABCMeta):
     @property
     @abstractmethod
     def ids(self) -> np.ndarray:
-        """Site family identifies. Multiple sites can share the same ID, 
+        """Site family identifies. Multiple sites can share the same ID,
         e.g. sites which belong to the same sublattice."""
 
     @abstractmethod
@@ -145,7 +146,9 @@ class AbstractSites(metaclass=ABCMeta):
         if target_site_family is None:
             return np.argsort(distances)
         else:
-            return ma.argsort(ma.array(distances, mask=(self.ids != target_site_family)))
+            return ma.argsort(
+                ma.array(distances, mask=(self.ids != target_site_family))
+            )
 
 
 class Sites(AbstractSites):

@@ -11,6 +11,7 @@ def ring_model():
         def contains(x, y, _):
             r = np.sqrt(x**2 + y**2)
             return np.logical_and(inner_radius < r, r < outer_radius)
+
         return pb.FreeformShape(contains, width=[2 * outer_radius, 2 * outer_radius])
 
     return pb.Model(graphene.monolayer(), ring(3, 5))
@@ -19,12 +20,13 @@ def ring_model():
 def square_model(width=2, height=3):
     def square_lattice(d=1, t=1):
         lat = pb.Lattice(a1=[d, 0], a2=[0, d])
-        lat.add_sublattices(('A', [0, 0]))
+        lat.add_sublattices(("A", [0, 0]))
         lat.add_hoppings(
-            ([0, 1], 'A', 'A', -t),
-            ([1, 0], 'A', 'A', -t),
+            ([0, 1], "A", "A", -t),
+            ([1, 0], "A", "A", -t),
         )
         return lat
+
     return pb.Model(square_lattice(), pb.rectangle(width, height))
 
 
@@ -32,6 +34,7 @@ def linear_onsite(k=1):
     @pb.onsite_energy_modifier
     def onsite(x):
         return k * x
+
     return onsite
 
 
@@ -39,6 +42,7 @@ def linear_hopping(k=1):
     @pb.hopping_energy_modifier
     def hopping(x1, x2):
         return 0.5 * k * (x1 + x2)
+
     return hopping
 
 
@@ -82,8 +86,8 @@ def test_attach():
     """Attach 2 leads to a square lattice system"""
     w, h = 2, 3
     model = square_model(w, h)
-    model.attach_lead(-1, pb.line([0, -h/2], [0, h/2]))
-    model.attach_lead(+1, pb.line([0, -h/2], [0, h/2]))
+    model.attach_lead(-1, pb.line([0, -h / 2], [0, h / 2]))
+    model.attach_lead(+1, pb.line([0, -h / 2], [0, h / 2]))
     assert len(model.leads) == 2
     assert np.all(model.leads[0].indices == [0, 2, 4])
     assert np.all(model.leads[1].indices == [1, 3, 5])
