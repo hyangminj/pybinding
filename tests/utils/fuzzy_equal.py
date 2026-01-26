@@ -21,7 +21,19 @@ def _assertdispatch(func):
         if context is not None:
             self.stack.append(context)
 
-        is_pb_savable = any(hasattr(actual, s) for s in ["__getstate__", "__getinitargs__"])
+        # Check if the object is a pybinding type that should use pb.save/load
+        # Only consider it "pb savable" if it has __getinitargs__ (pybinding specific)
+        # or if it's a pybinding module object with __getstate__
+        # Note: Python 3.11+ adds __getstate__ to many objects, so we need to be more specific
+        is_pb_savable = (
+            hasattr(actual, "__getinitargs__")
+            or (
+                hasattr(actual, "__getstate__")
+                and hasattr(actual, "__module__")
+                and actual.__module__ is not None
+                and actual.__module__.startswith("pybinding")
+            )
+        )
         kind = type(pb.save) if is_pb_savable else actual.__class__
         dispatcher.dispatch(kind)(self, actual, expected)
 
