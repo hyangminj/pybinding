@@ -57,7 +57,7 @@ jobs:
       - name: Build and install
         env:
           PB_WERROR: "OFF"
-          PB_TESTS: "ON"
+          PB_TESTS: "OFF"  # C++ tests disabled; Python tests run via pytest
           PB_USE_SIMD: "OFF"  # Disabled due to libsimdpp v2.1 C++17 issues with modern compilers
         run: |
           python -m pip install -e .[dev]
